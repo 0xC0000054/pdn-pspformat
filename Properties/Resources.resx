@@ -141,6 +141,9 @@
   <data name="RasterLayerNotFound" xml:space="preserve">
     <value>The file does not contain any Raster layers.</value>
   </data>
+  <data name="UnsupportedBitDepth" xml:space="preserve">
+    <value>{0} is not a supported bit depth.</value>
+  </data>
   <data name="Version5" xml:space="preserve">
     <value>Paint Shop Pro 5</value>
   </data>

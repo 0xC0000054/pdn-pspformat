@@ -133,6 +133,15 @@ namespace PaintShopProFiletype.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} is not a supported bit depth..
+        /// </summary>
+        internal static string UnsupportedBitDepth {
+            get {
+                return ResourceManager.GetString("UnsupportedBitDepth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Paint Shop Pro 5.
         /// </summary>
         internal static string Version5 {
