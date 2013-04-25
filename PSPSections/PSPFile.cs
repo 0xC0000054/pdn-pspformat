@@ -133,6 +133,72 @@ namespace PaintShopProFiletype
 			}
 		}
 
+		private static unsafe byte[] ExpandPackedPalette(Rectangle saveRect, LayerBitmapInfoChunk bitmap, int bitDepth)
+		{
+			int height = saveRect.Height;
+			int width = saveRect.Width;
+			byte[] image = new byte[width * height];
+ 
+			int bpp, shift;
+			if (bitDepth == 4)
+			{
+				bpp = 2;
+				shift = 1;
+			}
+			else
+			{
+				bpp = 8;
+				shift = 3;
+			}
+
+			fixed (byte* ptr = image, dPtr = bitmap.channels[0].channelData)
+			{
+				int srcStride = width / bpp;
+
+				for (int y = 0; y < height; y++)
+				{
+					byte* src = dPtr + (y * srcStride);
+					byte* dst = ptr + (y * width);
+
+					for (int x = 0; x < width; x++)
+					{
+						byte data = src[x >> shift];
+
+						switch (bitDepth)
+						{
+							case 4:
+
+								if ((x & 1) == 1) // odd column
+								{
+									*dst = (byte)(data & 0x0f); 
+								}
+								else
+								{
+									*dst = (byte)(data >> 4); 
+								}
+							   
+								break;
+							case 1:
+
+								int mask = x & 7;
+								// extract the palette bit for the current pixel. 
+								*dst = (byte)((data & (128 >> mask)) >> (7 - mask)); 
+								break;
+
+						}
+
+						dst++;
+					}
+				}
+
+
+
+			}
+
+
+			return image;
+		}
+
 		public Document Load(Stream input)
 		{
 			this.LoadPSPFile(input);
@@ -192,76 +258,158 @@ namespace PaintShopProFiletype
 					{
 						new UnaryPixelOps.SetAlphaChannelTo255().Apply(layer.Surface, saveRect);
 					}
+					
+					int alphaIndex = 0;
+
+					int bitDepth = imageAttributes.BitDepth;                    
+
+					int bpp = 1;
+					int stride = saveRect.Width;
+					if (bitDepth == 48)
+					{
+						bpp = 2;
+						stride *= 2;
+					}
+
+					byte[] expandedPalette = null;
+					if (bitDepth == 4 || bitDepth == 1)
+					{
+						expandedPalette = ExpandPackedPalette(saveRect, bitmapInfo, bitDepth);
+					}
 
 					unsafe
 					{
+						int palIdx = 0;
+						NativeStructs.RGBQUAD entry;
+
 						Surface surface = layer.Surface;
 						for (int y = saveRect.Top; y < saveRect.Bottom; y++)
 						{
 							ColorBgra* ptr = surface.GetPointAddressUnchecked(saveRect.Left, y);
 							ColorBgra* endPtr = ptr + saveRect.Width;
-							int index = ((y - saveRect.Top) * saveRect.Width);
+							int index = ((y - saveRect.Top) * stride);
 
 							while (ptr < endPtr)
 							{
-								if (imageAttributes.BitDepth == 24)
+								switch (bitDepth)
 								{
-									for (int ci = 0; ci < bitmapInfo.channelCount; ci++)
-									{
-										ChannelSubBlock ch = bitmapInfo.channels[ci];
+									case 48:
 
-										if (ch.bitmapType == PSPDIBType.PSP_DIB_IMAGE)
+										for (int ci = 0; ci < bitmapInfo.channelCount; ci++)
 										{
-											switch (ch.channelType)
+											ChannelSubBlock ch = bitmapInfo.channels[ci];
+
+											ushort col = (ushort)(ch.channelData[index] | (ch.channelData[index + 1] << 8)); // PSP format is always little endian 
+											byte clamped = (byte)((col * 255) / 65535);
+
+											if (ch.bitmapType == PSPDIBType.PSP_DIB_IMAGE)
 											{
-												case PSPChannelType.PSP_CHANNEL_RED:
-													ptr->R = ch.channelData[index];
+												switch (ch.channelType)
+												{
+													case PSPChannelType.PSP_CHANNEL_RED:
+														ptr->R = clamped;
+														break;
+													case PSPChannelType.PSP_CHANNEL_GREEN:
+														ptr->G = clamped;
+														break;
+													case PSPChannelType.PSP_CHANNEL_BLUE:
+														ptr->B = clamped;
+														break;
+												} 
+											}
+											else if (ch.bitmapType == PSPDIBType.PSP_DIB_TRANS_MASK)
+											{
+												ptr->A = ch.channelData[alphaIndex];										
+                                                alphaIndex++;
+											}
+
+
+										}
+
+										break;
+									case 24:
+
+										for (int ci = 0; ci < bitmapInfo.channelCount; ci++)
+										{
+											ChannelSubBlock ch = bitmapInfo.channels[ci];
+
+											if (ch.bitmapType == PSPDIBType.PSP_DIB_IMAGE)
+											{
+												switch (ch.channelType)
+												{
+													case PSPChannelType.PSP_CHANNEL_RED:
+														ptr->R = ch.channelData[index];
+														break;
+													case PSPChannelType.PSP_CHANNEL_GREEN:
+														ptr->G = ch.channelData[index];
+														break;
+													case PSPChannelType.PSP_CHANNEL_BLUE:
+														ptr->B = ch.channelData[index];
+														break;
+												}
+											}
+											else if (ch.bitmapType == PSPDIBType.PSP_DIB_TRANS_MASK)
+											{
+												ptr->A = ch.channelData[index];
+											}
+
+										}
+
+										break;
+									case 8:
+										for (int ci = 0; ci < bitmapInfo.channelCount; ci++)
+										{
+											ChannelSubBlock ch = bitmapInfo.channels[ci];
+											palIdx = ch.channelData[index];
+											entry = this.globalPalette.entries[palIdx];
+
+											switch (ch.bitmapType)
+											{
+												case PSPDIBType.PSP_DIB_IMAGE:
+													ptr->R = entry.rgbRed;
+													ptr->G = entry.rgbGreen;
+													ptr->B = entry.rgbBlue;
+
+													if (palIdx == transIndex)
+													{
+														ptr->A = 0;
+													}
+
 													break;
-												case PSPChannelType.PSP_CHANNEL_GREEN:
-													ptr->G = ch.channelData[index];
-													break;
-												case PSPChannelType.PSP_CHANNEL_BLUE:
-													ptr->B = ch.channelData[index];
+												case PSPDIBType.PSP_DIB_TRANS_MASK:
+													ptr->A = entry.rgbRed;
 													break;
 											}
 										}
-										else if (ch.bitmapType == PSPDIBType.PSP_DIB_TRANS_MASK)
+
+										break;
+									case 4:
+									case 1:
+
+										palIdx = expandedPalette[index];
+										entry = this.globalPalette.entries[palIdx];
+										
+										ptr->R = entry.rgbRed;
+										ptr->G = entry.rgbGreen;
+										ptr->B = entry.rgbBlue;
+
+										if (palIdx == transIndex)
 										{
-											ptr->A = ch.channelData[index];
+											ptr->A = 0;
+										}
+										else if ((bitmapInfo.bitmapCount == 2) && bitmapInfo.channels[1].bitmapType == PSPDIBType.PSP_DIB_TRANS_MASK)
+										{
+											ptr->A = bitmapInfo.channels[1].channelData[index];                                            
 										}
 
-									}
-								}
-								else
-								{
-									for (int ci = 0; ci < bitmapInfo.channelCount; ci++)
-									{
-										ChannelSubBlock ch = bitmapInfo.channels[ci];
-										int palIdx = ch.channelData[index];
-										NativeStructs.RGBQUAD pal = this.globalPalette.entries[palIdx];
+										break;
+									default:
+										throw new FormatException(string.Format(Properties.Resources.UnsupportedBitDepth, bitDepth));
 
-										switch (ch.bitmapType)
-										{
-											case PSPDIBType.PSP_DIB_IMAGE:
-												ptr->R = pal.rgbRed;
-												ptr->G = pal.rgbGreen;
-												ptr->B = pal.rgbBlue;
-
-												if (palIdx == transIndex)
-												{
-													ptr->A = 0;
-												}
-
-												break;
-											case PSPDIBType.PSP_DIB_TRANS_MASK:
-												ptr->A = pal.rgbRed;
-												break;
-										}
-									}
 								}
 
 								ptr++;
-								index++;
+								index += bpp;
 							}
 						} 
 					}
