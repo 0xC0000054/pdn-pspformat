@@ -140,15 +140,19 @@ namespace PaintShopProFiletype
 			byte[] image = new byte[width * height];
  
 			int bpp, shift;
-			if (bitDepth == 4)
+
+			switch (bitDepth)
 			{
-				bpp = 2;
-				shift = 1;
-			}
-			else
-			{
-				bpp = 8;
-				shift = 3;
+				case 4:		
+					bpp = 2;
+					shift = 1;
+					break;
+				case 1:
+					bpp = 8;
+					shift = 3;
+					break;
+				default:
+					throw new ArgumentOutOfRangeException("bitDepth", string.Format("Bit depth value of {0} is not supported, value must be 1 or 4.", bitDepth));
 			}
 
 			fixed (byte* ptr = image, dPtr = bitmap.channels[0].channelData)
@@ -190,11 +194,7 @@ namespace PaintShopProFiletype
 						dst++;
 					}
 				}
-
-
-
 			}
-
 
 			return image;
 		}
@@ -203,9 +203,12 @@ namespace PaintShopProFiletype
 		{
 			this.LoadPSPFile(input);
 
-#if DEBUG
-			Debug.Assert(imageAttributes.Width > 0 && imageAttributes.Height > 0);
-#endif
+
+			if (imageAttributes.Width <= 0 || imageAttributes.Height <= 0)
+			{
+				throw new FormatException(Properties.Resources.InvalidDocumentDimensions);
+			}
+
 			Document doc = new Document(imageAttributes.Width, imageAttributes.Height);
 
 			if (imageAttributes.ResValue > 0.0)
@@ -234,9 +237,10 @@ namespace PaintShopProFiletype
 				LayerInfoChunk info = infoChunks[i];
 				LayerBitmapInfoChunk bitmapInfo = bitmapInfoChunks[i];
 
-#if DEBUG
-				Debug.Assert(info.imageRect.Width > 0 && info.imageRect.Height > 0);
-#endif
+				if (info.imageRect.Width <= 0 || info.imageRect.Height <= 0)
+				{
+					continue;
+				}
 
 				if (info.type == PSPLayerType.keGLTRaster || info.type == PSPLayerType.keGLTFloatingRasterSelection)
 				{
@@ -263,18 +267,22 @@ namespace PaintShopProFiletype
 
 					int bitDepth = imageAttributes.BitDepth;                    
 
-					int bpp = 1;
+					int bytesPerPixel = 1;
 					int stride = saveRect.Width;
-					if (bitDepth == 48)
-					{
-						bpp = 2;
-						stride *= 2;
-					}
-
 					byte[] expandedPalette = null;
-					if (bitDepth == 4 || bitDepth == 1)
+
+					switch (imageAttributes.BitDepth)
 					{
-						expandedPalette = ExpandPackedPalette(saveRect, bitmapInfo, bitDepth);
+						case 48:
+							bytesPerPixel = 2;
+							stride *= 2;
+							break;
+						case 4:
+						case 1:
+							expandedPalette = ExpandPackedPalette(saveRect, bitmapInfo, bitDepth);
+							break;
+						default:
+							break;
 					}
 
 					unsafe
@@ -320,7 +328,7 @@ namespace PaintShopProFiletype
 											else if (ch.bitmapType == PSPDIBType.PSP_DIB_TRANS_MASK)
 											{
 												ptr->A = ch.channelData[alphaIndex];										
-                                                alphaIndex++;
+												alphaIndex++;
 											}
 
 
@@ -399,7 +407,7 @@ namespace PaintShopProFiletype
 										}
 										else if ((bitmapInfo.bitmapCount == 2) && bitmapInfo.channels[1].bitmapType == PSPDIBType.PSP_DIB_TRANS_MASK)
 										{
-											ptr->A = bitmapInfo.channels[1].channelData[index];                                            
+											ptr->A = bitmapInfo.channels[1].channelData[index];
 										}
 
 										break;
@@ -409,7 +417,7 @@ namespace PaintShopProFiletype
 								}
 
 								ptr++;
-								index += bpp;
+								index += bytesPerPixel;
 							}
 						} 
 					}
@@ -923,8 +931,15 @@ namespace PaintShopProFiletype
 
 					if (!savedBounds.IsEmpty)
 					{
-						int channelCount = LayerHasTransparency(layer.Surface, savedBounds) ? 4 : 3;
-						int bitmapCount = channelCount == 4 ? 2 : 1;
+						int channelCount = 3;
+						int bitmapCount = 1;
+
+						if (LayerHasTransparency(layer.Surface, savedBounds))
+						{
+							channelCount = 4;
+							bitmapCount = 2;
+						}
+
 						LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk()
 						{
 							chunkSize = 8U,
