@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
+﻿using System.IO;
 
 namespace PaintShopProFiletype.PSPSections
 {
@@ -39,7 +35,7 @@ namespace PaintShopProFiletype.PSPSections
             this.Load(br);
         }
 
-        public void Load(BinaryReader br)
+        private void Load(BinaryReader br)
         {
             this.majorVersion = br.ReadUInt16();
             this.minorVersion = br.ReadUInt16();
