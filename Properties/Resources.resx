@@ -132,6 +132,9 @@
   <data name="FileVersionText" xml:space="preserve">
     <value>File Version</value>
   </data>
+  <data name="InvalidDocumentDimensions" xml:space="preserve">
+    <value>The file width and height must be greater than zero.</value>
+  </data>
   <data name="InvalidPSPFile" xml:space="preserve">
     <value>Invalid Paint Shop Pro File.</value>
   </data>
