@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Diagnostics;
 using System.IO;
-using System.Diagnostics;
 
 namespace PaintShopProFiletype.PSPSections
 {
@@ -18,11 +14,11 @@ namespace PaintShopProFiletype.PSPSections
 		public uint colorCount;
 		public PSPCompositeImageType compositeImageType; // ushort
 
+		private const uint HeaderSize = 24U;
+
 #if DEBUG
 		public CompositeImageAttributesChunk(BinaryReader br)
 		{
-			uint dataSize = 24;
-
 			this.chunkSize = br.ReadUInt32();
 			this.width = br.ReadInt32();
 			this.height = br.ReadInt32();
@@ -32,7 +28,7 @@ namespace PaintShopProFiletype.PSPSections
 			this.colorCount = br.ReadUInt32();
 			this.compositeImageType = (PSPCompositeImageType)br.ReadUInt16();
 
-			uint dif = chunkSize - dataSize;
+			uint dif = chunkSize - HeaderSize;
 			if (dif > 0)
 			{
 				br.BaseStream.Position += (long)dif;
@@ -45,7 +41,7 @@ namespace PaintShopProFiletype.PSPSections
 		{
 			bw.Write(PSPConstants.blockIdentifier);
 			bw.Write((ushort)PSPBlockID.PSP_COMPOSITE_ATTRIBUTES_BLOCK);
-			bw.Write(24U);
+			bw.Write(HeaderSize);
 			bw.Write(this.chunkSize);
 			bw.Write(this.width);
 			bw.Write(this.height);
@@ -66,16 +62,17 @@ namespace PaintShopProFiletype.PSPSections
 
 		public byte[] imageData;
 
+		private const uint HeaderSize = 14U;
+
 #if DEBUG
 		public JPEGCompositeInfoChunk(BinaryReader br)
 		{
-			uint dataSize = 14;
 			this.chunkSize = br.ReadUInt32();
 			this.compressedSize = br.ReadUInt32();
 			this.unCompressedSize = br.ReadUInt32();
 			this.imageType = (PSPDIBType)br.ReadUInt16();
 
-			uint dif = chunkSize - dataSize;
+			uint dif = chunkSize - HeaderSize;
 			if (dif > 0)
 			{
 				br.BaseStream.Position += (long)dif;
@@ -89,7 +86,7 @@ namespace PaintShopProFiletype.PSPSections
 		{
 			bw.Write(PSPConstants.blockIdentifier);
 			bw.Write((ushort)PSPBlockID.PSP_JPEG_BLOCK);
-			bw.Write(14U + this.compressedSize);
+			bw.Write(HeaderSize + this.compressedSize);
 			bw.Write(this.chunkSize);
 			bw.Write(this.compressedSize);
 			bw.Write(this.unCompressedSize);

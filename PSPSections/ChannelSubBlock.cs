@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
+﻿using System.IO;
 using Ionic.Zlib;
 
 namespace PaintShopProFiletype.PSPSections
@@ -16,6 +12,9 @@ namespace PaintShopProFiletype.PSPSections
 		public PSPChannelType channelType;
 		public byte[] channelData;
 
+		private const uint Version6HeaderSize = 16U;
+		private const uint Version5HeaderSize = 12U;
+
 		public ChannelSubBlock(BinaryReader br, PSPCompression compressionType, ushort majorVersion)
 		{
 			this.chunkSize = majorVersion > PSPConstants.majorVersion5 ? br.ReadUInt32() : 0U;
@@ -25,7 +24,7 @@ namespace PaintShopProFiletype.PSPSections
 			this.channelType = (PSPChannelType)br.ReadUInt16();
 			this.channelData = null;
   
-			long dif = chunkSize - 16U;
+			long dif = chunkSize - Version6HeaderSize;
 			if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
 			{
 				br.BaseStream.Position += dif;
@@ -79,13 +78,13 @@ namespace PaintShopProFiletype.PSPSections
 			bw.Write((ushort)PSPBlockID.PSP_CHANNEL_BLOCK);
 			if (majorVersion > PSPConstants.majorVersion5)
 			{
-				bw.Write(16U + this.compressedChannelLength);            
+				bw.Write(Version6HeaderSize + this.compressedChannelLength);            
 				bw.Write(this.chunkSize);
 			}
 			else
 			{
-				bw.Write(12U); // initial size
-				bw.Write(12U + this.compressedChannelLength);
+				bw.Write(Version5HeaderSize); // initial size
+				bw.Write(Version5HeaderSize + this.compressedChannelLength);
 			}                
 			bw.Write(this.compressedChannelLength);
 			bw.Write(this.uncompressedChannelLength);

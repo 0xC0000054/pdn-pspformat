@@ -9,6 +9,8 @@ namespace PaintShopProFiletype.PSPSections
 
         public NativeStructs.RGBQUAD[] entries;
 
+        private const uint HeaderSize = 8U;
+
         public ColorPaletteBlock(BinaryReader br, ushort majorVersion)
         {
             this.chunkSize = majorVersion > PSPConstants.majorVersion5 ?  br.ReadUInt32() : 0;
@@ -23,7 +25,7 @@ namespace PaintShopProFiletype.PSPSections
                 this.entries[i].rgbReserved = br.ReadByte();
             } 
             
-            uint dif = chunkSize - 8U;
+            uint dif = chunkSize - HeaderSize;
             if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
             {
                 br.BaseStream.Position += (long)dif;
