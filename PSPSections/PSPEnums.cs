@@ -1,9 +1,6 @@
 ﻿// PSP File Format Specification is Copyright (C) 2000 Jasc Software, Inc.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace PaintShopProFiletype.PSPSections
 {
