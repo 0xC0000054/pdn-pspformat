@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿
 namespace PaintShopProFiletype.PSPSections
 {
     class PSPConstants
@@ -17,6 +13,11 @@ namespace PaintShopProFiletype.PSPSections
         public const ushort majorVersion8 = 6;
         public const ushort majorVersion9 = 7;
         public const ushort majorVersion10 = 8;
+
+        /// <summary>
+        /// Paint Shop Pro X2
+        /// </summary>
+        public const ushort majorVersion12 = 10;
 
         public const ushort v5ThumbnailBlock = 9;
 
