@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using Ionic.Zlib;
 using PaintDotNet;
 using PaintDotNet.IO;
@@ -29,13 +30,45 @@ namespace PaintShopProFiletype
 		private FileHeader fileHeader;
 		private GeneralImageAttributes imageAttributes;
 		private ExtendedDataBlock extData;
-#if DEBUG
 		private CreatorBlock creator;
-#endif		
 		private CompositeImageBlock compImage;        
 		private ColorPaletteBlock globalPalette;
 		private LayerBlock layerBlock;
 		private ThumbnailBlock v5Thumbnail;
+
+		private const string PSPCreatorMetaData = "PSPFormatCreatorData";
+
+		private static string SerializeToBase64(object data)
+		{
+			using (MemoryStream stream = new MemoryStream())
+			{
+				new BinaryFormatter().Serialize(stream, data);
+
+				return Convert.ToBase64String(stream.ToArray());
+			}
+		}
+
+		/// <summary>
+		/// Binds the serialization to types in the currently loaded assembly. 
+		/// </summary>
+		private class SelfBinder : System.Runtime.Serialization.SerializationBinder
+		{
+			public override Type BindToType(string assemblyName, string typeName)
+			{
+				return Type.GetType(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0},{1}", typeName, assemblyName));
+			}
+		}
+
+		private static T DeserializeFromBase64<T>(string base64)
+		{
+			byte[] bytes = Convert.FromBase64String(base64);
+
+			using (MemoryStream stream = new MemoryStream(bytes))
+			{
+				BinaryFormatter formatter = new BinaryFormatter() { Binder = new SelfBinder() };
+				return (T)formatter.Deserialize(stream);
+			}
+		}
 
 		private static bool CheckSig(byte[] sig)
 		{
@@ -440,8 +473,10 @@ namespace PaintShopProFiletype
 				}
 			   
 			}
-		
 
+			string creatorData = SerializeToBase64(this.creator);
+			doc.Metadata.SetUserValue(PSPCreatorMetaData, creatorData);
+		
 			return doc;
 		}
 
@@ -968,9 +1003,20 @@ namespace PaintShopProFiletype
 
 				this.layerBlock = new LayerBlock(layerInfoChunks, layerBitmapChunks);
 
+				string creatorData = input.Metadata.GetUserValue(PSPCreatorMetaData);
+				if (!string.IsNullOrEmpty(creatorData))
+				{
+					this.creator = DeserializeFromBase64<CreatorBlock>(creatorData);
+				}
+				else
+				{
+					this.creator = new CreatorBlock();
+				}
+
 				writer.Write(PSPFileSig);
 				this.fileHeader.Save(writer);
 				this.imageAttributes.Save(writer);
+				this.creator.Save(writer);
 				if (this.compImage != null)
 				{
 					this.compImage.Save(writer);
