@@ -39,6 +39,8 @@ namespace PaintShopProFiletype
 
 		private static bool CheckSig(byte[] sig)
 		{
+			// Some writers may not write zeros for the signature padding, so we only check the first 27 bytes of the signature.
+			
 			for (int i = 0; i < 27; i++)
 			{
 				if (sig[i] != PSPFileSig[i])
@@ -91,6 +93,11 @@ namespace PaintShopProFiletype
 			using (BinaryReader br = new BinaryReader(input))
 			{
 				fileHeader = new FileHeader(br);
+
+				if (fileHeader.Major >= PSPConstants.majorVersion12)
+				{
+					throw new FormatException(Properties.Resources.UnsupportedFormatVersion);
+				}
 
 				while (input.Position < input.Length)
 				{
