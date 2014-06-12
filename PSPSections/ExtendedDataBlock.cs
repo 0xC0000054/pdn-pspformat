@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.IO;
 
 namespace PaintShopProFiletype.PSPSections
@@ -22,15 +19,15 @@ namespace PaintShopProFiletype.PSPSections
         public ExtendedDataBlock(BinaryReader br, uint blockLength)
         {
             this.blockLength = blockLength;
-            this.values = new Dictionary<PSPExtendedDataID,byte[]>();
+            this.values = new Dictionary<PSPExtendedDataID, byte[]>();
             this.Load(br);
         }
 
-        public void Load(BinaryReader br)
+        private void Load(BinaryReader br)
         {
-            long pos = br.BaseStream.Position;
+            long startOffset = br.BaseStream.Position;
 
-            long endOffset = pos + (long)blockLength;
+            long endOffset = startOffset + (long)blockLength;
 
             while ((br.BaseStream.Position < endOffset) && br.ReadUInt32() == PSPConstants.fieldIdentifier)
             {
@@ -42,7 +39,7 @@ namespace PaintShopProFiletype.PSPSections
                 values.Add(fieldID, data);
             }
 
-            long dif = this.blockLength - (br.BaseStream.Position - pos);
+            long dif = this.blockLength - (br.BaseStream.Position - startOffset);
 
             if (dif > 0)
             {
