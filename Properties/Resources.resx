@@ -112,10 +112,10 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CompressionFormatLZ77Text" xml:space="preserve">
     <value>LZ77</value>
@@ -136,7 +136,7 @@
     <value>The file width and height must be greater than zero.</value>
   </data>
   <data name="InvalidPSPFile" xml:space="preserve">
-    <value>Invalid Paint Shop Pro File.</value>
+    <value>The file is not a valid Paint Shop Pro image.</value>
   </data>
   <data name="MaxLayersFormat" xml:space="preserve">
     <value>The selected Paint Shop Pro format supports a maximum of {0} layers.</value>
@@ -146,6 +146,9 @@
   </data>
   <data name="UnsupportedBitDepth" xml:space="preserve">
     <value>{0} is not a supported bit depth.</value>
+  </data>
+  <data name="UnsupportedFormatVersion" xml:space="preserve">
+    <value>The file uses a version of the Paint Shop Pro format that is not supported by this plugin.</value>
   </data>
   <data name="Version5" xml:space="preserve">
     <value>Paint Shop Pro 5</value>

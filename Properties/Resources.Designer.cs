@@ -115,7 +115,7 @@ namespace PaintShopProFiletype.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid Paint Shop Pro File..
+        ///   Looks up a localized string similar to The file is not a valid Paint Shop Pro image..
         /// </summary>
         internal static string InvalidPSPFile {
             get {
@@ -147,6 +147,15 @@ namespace PaintShopProFiletype.Properties {
         internal static string UnsupportedBitDepth {
             get {
                 return ResourceManager.GetString("UnsupportedBitDepth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file uses a version of the Paint Shop Pro format that is not supported by this plugin..
+        /// </summary>
+        internal static string UnsupportedFormatVersion {
+            get {
+                return ResourceManager.GetString("UnsupportedFormatVersion", resourceCulture);
             }
         }
         
