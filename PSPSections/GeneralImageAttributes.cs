@@ -12,7 +12,7 @@ namespace PaintShopProFiletype.PSPSections
 		private int width;
 		private int height;
 		private double resValue;
-		private PSP_METRIC resUnits; // byte
+		private ResolutionMetric resUnits; // byte
 		private PSPCompression compressionType; // ushort
 		private ushort bitDepth;
 		private ushort planeCount;
@@ -49,7 +49,7 @@ namespace PaintShopProFiletype.PSPSections
 			}
 		}
 
-		public PSP_METRIC ResUnit
+		public ResolutionMetric ResUnit
 		{
 			get
 			{
@@ -85,11 +85,14 @@ namespace PaintShopProFiletype.PSPSections
 			}
 		}
 
+		private const uint Version6HeaderSize = 46U;
+		private const uint Version5HeaderSize = 38U;
+
 		private ushort fileMajorVersion;
 
 		public GeneralImageAttributes(int width, int height, PSPCompression compType, int activeLayer, int layerCount, ushort majorVersion)
 		{
-			this.chunkSize = majorVersion > PSPConstants.majorVersion5 ? 46U : 38U;
+			this.chunkSize = majorVersion > PSPConstants.majorVersion5 ? Version6HeaderSize : Version5HeaderSize;
 			this.width = width;
 			this.height = height;
 			this.compressionType = compType;
@@ -97,7 +100,7 @@ namespace PaintShopProFiletype.PSPSections
 			this.layerCount = (ushort)layerCount;
 			this.bitDepth = 24;
 			this.colorCount = (1U << this.bitDepth);
-			this.graphicContents |= PSPGraphicContents.keGCRasterLayers;
+			this.graphicContents |= PSPGraphicContents.RasterLayers;
 
 			this.fileMajorVersion = majorVersion;
 		}
@@ -111,13 +114,13 @@ namespace PaintShopProFiletype.PSPSections
 
 		private void Load(BinaryReader br)
 		{
-			int dataSize = this.fileMajorVersion > PSPConstants.majorVersion5 ? 46 : 38;
+			long dataSize = this.fileMajorVersion > PSPConstants.majorVersion5 ? Version6HeaderSize : Version5HeaderSize;
 
 			this.chunkSize = this.fileMajorVersion > PSPConstants.majorVersion5 ? br.ReadUInt32() : 0;
 			this.width = br.ReadInt32();
 			this.height = br.ReadInt32();
 			this.resValue = br.ReadDouble();
-			this.resUnits = (PSP_METRIC)br.ReadByte();
+			this.resUnits = (ResolutionMetric)br.ReadByte();
 			this.compressionType = (PSPCompression)br.ReadUInt16();
 			this.bitDepth = br.ReadUInt16();
 			this.planeCount = br.ReadUInt16();
@@ -147,16 +150,16 @@ namespace PaintShopProFiletype.PSPSections
 		public void Save(BinaryWriter bw)
 		{
 			bw.Write(PSPConstants.blockIdentifier);
-			bw.Write((ushort)PSPBlockID.PSP_IMAGE_BLOCK);
+			bw.Write((ushort)PSPBlockID.ImageAttributes);
 			if (this.fileMajorVersion > PSPConstants.majorVersion5)
 			{
-				bw.Write(46U); // total size                
+				bw.Write(Version6HeaderSize); // total size                
 				bw.Write(this.chunkSize); // total size
 			}
 			else
 			{
-				bw.Write(38U); // initial size
-				bw.Write(38U); // total size
+				bw.Write(Version5HeaderSize); // initial size
+				bw.Write(Version5HeaderSize); // total size
 			}       
 			bw.Write(this.width);
 			bw.Write(this.height);
@@ -175,7 +178,6 @@ namespace PaintShopProFiletype.PSPSections
 			{
 				bw.Write((uint)this.graphicContents);
 			}
-
 		}
 
 		public void SetGraphicContentFlag(PSPGraphicContents flag)

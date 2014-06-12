@@ -40,7 +40,7 @@ namespace PaintShopProFiletype.PSPSections
 		public void Save(BinaryWriter bw)
 		{
 			bw.Write(PSPConstants.blockIdentifier);
-			bw.Write((ushort)PSPBlockID.PSP_COMPOSITE_ATTRIBUTES_BLOCK);
+			bw.Write((ushort)PSPBlockID.CompositeImageAttributes);
 			bw.Write(HeaderSize);
 			bw.Write(this.chunkSize);
 			bw.Write(this.width);
@@ -85,7 +85,7 @@ namespace PaintShopProFiletype.PSPSections
 		public void Save(BinaryWriter bw)
 		{
 			bw.Write(PSPConstants.blockIdentifier);
-			bw.Write((ushort)PSPBlockID.PSP_JPEG_BLOCK);
+			bw.Write((ushort)PSPBlockID.JPEGImage);
 			bw.Write(HeaderSize + this.compressedSize);
 			bw.Write(this.chunkSize);
 			bw.Write(this.compressedSize);
@@ -126,11 +126,11 @@ namespace PaintShopProFiletype.PSPSections
 
 				switch (blockType)
 				{
-					case PSPBlockID.PSP_COLOR_BLOCK:
+					case PSPBlockID.ColorPalette:
 						this.paletteSubBlock = new ColorPaletteBlock(br, majorVersion);
 						i--; // back up and read the channel
 						break;
-					case PSPBlockID.PSP_CHANNEL_BLOCK:
+					case PSPBlockID.Channel:
 						ChannelSubBlock block = new ChannelSubBlock(br, attr.compressionType, majorVersion);
 						channelBlocks[i] = block;
 						break;
@@ -144,7 +144,7 @@ namespace PaintShopProFiletype.PSPSections
 		public void Save(BinaryWriter writer, ushort majorVersion)
 		{
 			writer.Write(PSPConstants.blockIdentifier);
-			writer.Write((ushort)PSPBlockID.PSP_COMPOSITE_IMAGE_BLOCK);
+			writer.Write((ushort)PSPBlockID.CompositeImage);
 
 			using (new PSPUtil.BlockLengthWriter(writer))
 			{
@@ -215,10 +215,10 @@ namespace PaintShopProFiletype.PSPSections
 
 				switch (blockType)
 				{
-					case PSPBlockID.PSP_COMPOSITE_IMAGE_BLOCK:
+					case PSPBlockID.CompositeImage:
 						this.imageChunk = new CompositeImageInfoChunk(br, this.attrChunks[i], majorVersion);
 						break;
-					case PSPBlockID.PSP_JPEG_BLOCK:
+					case PSPBlockID.JPEGImage:
 						this.jpegChunk = new JPEGCompositeInfoChunk(br);
 						break;
 				}
@@ -246,7 +246,7 @@ namespace PaintShopProFiletype.PSPSections
 		public void Save(BinaryWriter bw)
 		{
 			bw.Write(PSPConstants.blockIdentifier);
-			bw.Write((ushort)PSPBlockID.PSP_COMPOSITE_IMAGE_BANK_BLOCK);
+			bw.Write((ushort)PSPBlockID.CompositeImageBank);
 			
 			using (new PSPUtil.BlockLengthWriter(bw))
 			{

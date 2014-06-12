@@ -122,9 +122,9 @@ namespace PaintShopProFiletype.PSPSections
 
 			this.type = (PSPLayerType)br.ReadByte();
 
-			if (majorVersion <= PSPConstants.majorVersion5 && this.type == PSPLayerType.keGLTUndefined)
+			if (majorVersion <= PSPConstants.majorVersion5 && this.type == PSPLayerType.Undefined)
 			{
-				this.type = PSPLayerType.keGLTRaster;
+				this.type = PSPLayerType.Raster;
 			}
 
 			this.imageRect = Rectangle.FromLTRB(br.ReadInt32(), br.ReadInt32(), br.ReadInt32(), br.ReadInt32());
@@ -320,7 +320,7 @@ namespace PaintShopProFiletype.PSPSections
 				uint initialBlockLength = fileMajorVersion <= PSPConstants.majorVersion5 ? reader.ReadUInt32() : 0;
 				uint blockLength = reader.ReadUInt32();
 
-				if (blockID == PSPBlockID.PSP_LAYER_BLOCK)
+				if (blockID == PSPBlockID.Layer)
 				{
 					index++;
 					long startOffset = reader.BaseStream.Position;
@@ -330,8 +330,8 @@ namespace PaintShopProFiletype.PSPSections
 
 					switch (chunk.type)
 					{
-						case PSPLayerType.keGLTRaster:
-						case PSPLayerType.keGLTFloatingRasterSelection:
+						case PSPLayerType.Raster:
+						case PSPLayerType.FloatingRasterSelection:
 							rasterCount++;
 							rasterInfoOffsets.Add(startOffset);
 							break;
@@ -351,7 +351,7 @@ namespace PaintShopProFiletype.PSPSections
 		public void Save(BinaryWriterEx bw, ushort majorVersion)
 		{
 			bw.Write(PSPConstants.blockIdentifier);
-			bw.Write((ushort)PSPBlockID.PSP_LAYER_START_BLOCK);
+			bw.Write((ushort)PSPBlockID.LayerStart);
 			if (majorVersion <= PSPConstants.majorVersion5)
 			{
 				bw.Write(0U); // length of first LayerInfoChunk
@@ -364,7 +364,7 @@ namespace PaintShopProFiletype.PSPSections
 				for (int i = 0; i < count; i++)
 				{
 					bw.Write(PSPConstants.blockIdentifier);
-					bw.Write((ushort)PSPBlockID.PSP_LAYER_BLOCK);
+					bw.Write((ushort)PSPBlockID.Layer);
 					if (majorVersion <= PSPConstants.majorVersion5)
 					{
 						bw.Write(375U); // size of the first layer info chunk

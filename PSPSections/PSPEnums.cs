@@ -8,88 +8,88 @@ namespace PaintShopProFiletype.PSPSections
     */
     enum PSPBlockID
     {
-        PSP_IMAGE_BLOCK = 0, // General Image Attributes Block (main)
-        PSP_CREATOR_BLOCK, // Creator Data Block (main)
-        PSP_COLOR_BLOCK, // Color Palette Block (main and sub)
-        PSP_LAYER_START_BLOCK, // Layer Bank Block (main)
-        PSP_LAYER_BLOCK, // Layer Block (sub)
-        PSP_CHANNEL_BLOCK, // Channel Block (sub)
-        PSP_SELECTION_BLOCK, // Selection Block (main)
-        PSP_ALPHA_BANK_BLOCK, // Alpha Bank Block (main)
-        PSP_ALPHA_CHANNEL_BLOCK,// Alpha Channel Block (sub)
-        PSP_COMPOSITE_IMAGE_BLOCK, // Composite Image Block (sub)
-        PSP_EXTENDED_DATA_BLOCK,// Extended Data Block (main)
-        PSP_TUBE_BLOCK, // Picture Tube Data Block (main)
-        PSP_ADJUSTMENT_EXTENSION_BLOCK, // Adjustment Layer Block (sub)
-        PSP_VECTOR_EXTENSION_BLOCK, // Vector Layer Block (sub)
-        PSP_SHAPE_BLOCK, // Vector Shape Block (sub)
-        PSP_PAINTSTYLE_BLOCK, // Paint Style Block (sub)
-        PSP_COMPOSITE_IMAGE_BANK_BLOCK, // Composite Image Bank (main)
-        PSP_COMPOSITE_ATTRIBUTES_BLOCK, // Composite Image Attr. (sub)
-        PSP_JPEG_BLOCK, // JPEG Image Block (sub)
-        PSP_LINESTYLE_BLOCK, // Line Style Block (sub)
-        PSP_TABLE_BANK_BLOCK, // Table Bank Block (main)
-        PSP_TABLE_BLOCK, // Table Block (sub)
-        PSP_PAPER_BLOCK, // Vector Table Paper Block (sub)
-        PSP_PATTERN_BLOCK, // Vector Table Pattern Block (sub)
-        PSP_GROUP_EXTENSION_BLOCK, // Group Layer Block (sub)
-        PSP_MASK_EXTENSION_BLOCK, // Mask Layer Block (sub)
-        PSP_BRUSH_BLOCK, // Brush Data Block (main)
+        ImageAttributes = 0, // General Image Attributes Block (main)
+        Creator, // Creator Data Block (main)
+        ColorPalette, // Color Palette Block (main and sub)
+        LayerStart, // Layer Bank Block (main)
+        Layer, // Layer Block (sub)
+        Channel, // Channel Block (sub)
+        Selection, // Selection Block (main)
+        AlphaBank, // Alpha Bank Block (main)
+        AlphaChannel,// Alpha Channel Block (sub)
+        CompositeImage, // Composite Image Block (sub)
+        ExtendedData,// Extended Data Block (main)
+        PictureTube, // Picture Tube Data Block (main)
+        AdjustmentLayerExtension, // Adjustment Layer Block (sub)
+        VectorLayerExtension, // Vector Layer Block (sub)
+        VectorShape, // Vector Shape Block (sub)
+        PaintStyle, // Paint Style Block (sub)
+        CompositeImageBank, // Composite Image Bank (main)
+        CompositeImageAttributes, // Composite Image Attr. (sub)
+        JPEGImage, // JPEG Image Block (sub)
+        LineStyle, // Line Style Block (sub)
+        TableBank, // Table Bank Block (main)
+        Table, // Table Block (sub)
+        Paper, // Vector Table Paper Block (sub)
+        Pattern, // Vector Table Pattern Block (sub)
+        GroupLayerExtension, // Group Layer Block (sub)
+        MaskLayerExtension, // Mask Layer Block (sub)
+        BrushData, // Brush Data Block (main)
     }
 
     /* Bitmap types.
     */
     enum PSPDIBType
     {
-        PSP_DIB_IMAGE = 0, // Layer color bitmap
-        PSP_DIB_TRANS_MASK, // Layer transparency mask bitmap
-        PSP_DIB_USER_MASK, // Layer user mask bitmap
-        PSP_DIB_SELECTION, // Selection mask bitmap
-        PSP_DIB_ALPHA_MASK, // Alpha channel mask bitmap
-        PSP_DIB_THUMBNAIL, // Thumbnail bitmap
-        PSP_DIB_THUMBNAIL_TRANS_MASK, // Thumbnail transparency mask
-        PSP_DIB_ADJUSTMENT_LAYER, // Adjustment layer bitmap
-        PSP_DIB_COMPOSITE, // Composite image bitmap
-        PSP_DIB_COMPOSITE_TRANS_MASK, // Composite image transparency
-        PSP_DIB_PAPER, // Paper bitmap
-        PSP_DIB_PATTERN, // Pattern bitmap
-        PSP_DIB_PATTERN_TRANS_MASK, // Pattern transparency mask
+        Image = 0, // Layer color bitmap
+        TransparencyMask, // Layer transparency mask bitmap
+        UserMask, // Layer user mask bitmap
+        Selection, // Selection mask bitmap
+        AlphaMask, // Alpha channel mask bitmap
+        Thumbnail, // Thumbnail bitmap
+        ThumbnailTransparencyMask, // Thumbnail transparency mask
+        AdjustmentLayer, // Adjustment layer bitmap
+        Composite, // Composite image bitmap
+        CompositeTransparencyMask, // Composite image transparency
+        Paper, // Paper bitmap
+        Pattern, // Pattern bitmap
+        PatternTransparencyMask, // Pattern transparency mask
     };
     /* Type of image in the composite image bank block.
     */
     enum PSPCompositeImageType
     {
-        PSP_IMAGE_COMPOSITE = 0, // Composite Image
-        PSP_IMAGE_THUMBNAIL, // Thumbnail Image
+        Composite = 0, // Composite Image
+        Thumbnail, // Thumbnail Image
     };
     /* Channel types.
     */
     enum PSPChannelType
     {
-        PSP_CHANNEL_COMPOSITE = 0, // Channel of single channel bitmap
-        PSP_CHANNEL_RED, // Red channel of 24-bit bitmap
-        PSP_CHANNEL_GREEN, // Green channel of 24-bit bitmap
-        PSP_CHANNEL_BLUE, // Blue channel of 24-bit bitmap
+        Composite = 0, // Channel of single channel bitmap
+        Red, // Red channel of 24-bit bitmap
+        Green, // Green channel of 24-bit bitmap
+        Blue, // Blue channel of 24-bit bitmap
     };
     /* Possible types of compression.
     */
     enum PSPCompression
     {
-        PSP_COMP_NONE = 0, // No compression
-        PSP_COMP_RLE, // RLE compression
-        PSP_COMP_LZ77, // LZ77 compression
-        PSP_COMP_JPEG // JPEG compression (only used by thumbnail and composite image)
+        None = 0, // No compression
+        RLE, // RLE compression
+        LZ77, // LZ77 compression
+        JPEG // JPEG compression (only used by thumbnail and composite image)
     };
     
     /* Layer types.
     */
     enum PSPLayerType
     {
-        keGLTUndefined = 0, // Undefined layer type
-        keGLTRaster, // Standard raster layer
-        keGLTFloatingRasterSelection, // Floating selection (raster)
-        keGLTVector, // Vector layer
-        keGLTAdjustment // Adjustment layer
+        Undefined = 0, // Undefined layer type
+        Raster, // Standard raster layer
+        FloatingRasterSelection, // Floating selection (raster)
+        Vector, // Vector layer
+        Adjustment, // Adjustment layer
     }
 
     /* Layer flags.
@@ -97,85 +97,82 @@ namespace PaintShopProFiletype.PSPSections
     [Flags]
     enum PSPLayerProperties
     {
-        keVisibleFlag = 1, // Layer is visible
-        keMaskPresenceFlag = 2 // Layer has a mask
+        Visible = 1, // Layer is visible
+        MaskPresence = 2 // Layer has a mask
     }
 
     /* Blend modes.
     */
     enum PSPBlendModes
     {
-        LAYER_BLEND_NORMAL,
-        LAYER_BLEND_DARKEN,
-        LAYER_BLEND_LIGHTEN,
-        LAYER_BLEND_LEGACY_HUE,
-        LAYER_BLEND_LEGACY_SATURATION,
-        LAYER_BLEND_LEGACY_COLOR,
-        LAYER_BLEND_LEGACY_LUMINOSITY,
-        LAYER_BLEND_MULTIPLY,
-        LAYER_BLEND_SCREEN,
-        LAYER_BLEND_DISSOLVE,
-        LAYER_BLEND_OVERLAY,
-        LAYER_BLEND_HARD_LIGHT,
-        LAYER_BLEND_SOFT_LIGHT,
-        LAYER_BLEND_DIFFERENCE,
-        LAYER_BLEND_DODGE,
-        LAYER_BLEND_BURN,
-        LAYER_BLEND_EXCLUSION,
-        LAYER_BLEND_TRUE_HUE,
-        LAYER_BLEND_TRUE_SATURATION,
-        LAYER_BLEND_TRUE_COLOR,
-        LAYER_BLEND_TRUE_LIGHTNESS,
-        LAYER_BLEND_ADJUST = 255,
+        Normal,
+        Darken,
+        Lighten,
+        LegacyHue,
+        LegacySaturation,
+        Color,
+        LegacyLuminosity,
+        Multiply,
+        Screen,
+        Dissolve,
+        Overlay,
+        HardLight,
+        SoftLight,
+        Difference,
+        Dodge,
+        Burn,
+        Exclusion,
+        TrueHue,
+        TrueSaturation,
+        TrueColor,
+        TrueLightness,
+        Adjust = 255,
     };
 
     /* Possible metrics used to measure resolution.
     */
-    enum PSP_METRIC
+    enum ResolutionMetric
     {
-        PSP_METRIC_UNDEFINED = 0, // Metric unknown
-        PSP_METRIC_INCH, // Resolution is in inches
-        PSP_METRIC_CM, // Resolution is in centimeters
+        Undefined = 0, // Metric unknown
+        Inch, // Resolution is in inches
+        Centimeters, // Resolution is in centimeters
     };
 
     /* Creator application identifiers.
     */
     enum PSPCreatorAppID
     {
-        PSP_CREATOR_APP_UNKNOWN = 0, // Creator application unknown
-        PSP_CREATOR_APP_PAINT_SHOP_PRO, // Creator is Paint Shop Pro
+        Unknown = 0, // Creator application unknown
+        PaintShopPro, // Creator is Paint Shop Pro
     }
-
     /* Creator field types.
     */
     enum PSPCreatorFieldID
     {
-        PSP_CRTR_FLD_TITLE = 0, // Image document title field
-        PSP_CRTR_FLD_CRT_DATE, // Creation date field
-        PSP_CRTR_FLD_MOD_DATE, // Modification date field
-        PSP_CRTR_FLD_ARTIST, // Artist name field
-        PSP_CRTR_FLD_CPYRGHT, // Copyright holder name field
-        PSP_CRTR_FLD_DESC, // Image document description field
-        PSP_CRTR_FLD_APP_ID, // Creating app id field
-        PSP_CRTR_FLD_APP_VER, // Creating app version field
+        Title = 0, // Image document title field
+        CreateDate, // Creation date field
+        ModifiedDate, // Modification date field
+        Artist, // Artist name field
+        Copyright, // Copyright holder name field
+        Description, // Image document description field
+        ApplicationID, // Creating app id field
+        ApplicationVersion, // Creating app version field
     }
-
     /* Extended data field types.
     */
     enum PSPExtendedDataID
     {
-        PSP_XDATA_TRNS_INDEX = 0, // Transparency index field
-        PSP_XDATA_GRID, // Image grid information
-        PSP_XDATA_GUIDE // Image guide information
+        TransparencyIndex = 0, // Transparency index field
+        Grid, // Image grid information
+        Guide, // Image guide information
     }
-
     /* Grid units type.
     */
     enum PSPGridUnitsType
     {
-        keGridUnitsPixels = 0, // Grid units is pixels
-        keGridUnitsInches, // Grid units is inches
-        keGridUnitsCentimeters // Grid units is centimeters
+        Pixels = 0, // Grid units is pixels
+        Inches, // Grid units is inches
+        Centimeters // Grid units is centimeters
     }
 
     /* Graphic contents flags.
@@ -184,18 +181,18 @@ namespace PaintShopProFiletype.PSPSections
     enum PSPGraphicContents : uint
     {
         // Layer types
-        keGCRasterLayers = 0x00000001, // At least one raster layer
-        keGCVectorLayers = 0x00000002, // At least one vector layer
-        keGCAdjustmentLayers = 0x00000004, // At least one adjustment layer
+        RasterLayers = 0x00000001, // At least one raster layer
+        VectorLayers = 0x00000002, // At least one vector layer
+        AdjustmentLayers = 0x00000004, // At least one adjust. layer
         // Additional attributes
-        keGCThumbnail = 0x01000000, // Has a thumbnail
-        keGCThumbnailTransparency = 0x02000000, // Thumbnail transp.
-        keGCComposite = 0x04000000, // Has a composite image
-        keGCCompositeTransparency = 0x08000000, // Composite transp.
-        keGCFlatImage = 0x10000000, // Just a background
-        keGCSelection = 0x20000000, // Has a selection
-        keGCFloatingSelectionLayer = 0x40000000, // Has float. selection
-        keGCAlphaChannels = 0x80000000 // Has alpha channel(s)
+        Thumbnail = 0x01000000, // Has a thumbnail
+        ThumbnailTransparency = 0x02000000, // Thumbnail transp.
+        Composite = 0x04000000, // Has a composite image
+        CompositeTransparency = 0x08000000, // Composite transp.
+        FlatImage = 0x10000000, // Just a background
+        Selection = 0x20000000, // Has a selection
+        FloatingSelectionLayer = 0x40000000, // Has float. selection
+        AlphaChannels = 0x80000000 // Has alpha channel(s)
     }
 
 }

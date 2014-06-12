@@ -34,13 +34,13 @@ namespace PaintShopProFiletype.PSPSections
 			{
 				switch (compressionType)
 				{
-					case PSPCompression.PSP_COMP_NONE:
+					case PSPCompression.None:
 						this.channelData = br.ReadBytes((int)compressedChannelLength);
 						break;
-					case PSPCompression.PSP_COMP_RLE:
+					case PSPCompression.RLE:
 						this.channelData = RLE.Decompress(br.ReadBytes((int)compressedChannelLength), uncompressedChannelLength);
 						break;
-					case PSPCompression.PSP_COMP_LZ77:
+					case PSPCompression.LZ77:
 
 						byte[] compressedData = br.ReadBytes((int)compressedChannelLength);
 						this.channelData = new byte[uncompressedChannelLength];
@@ -75,7 +75,7 @@ namespace PaintShopProFiletype.PSPSections
 		public void Save(BinaryWriter bw, ushort majorVersion)
 		{
 			bw.Write(PSPConstants.blockIdentifier);
-			bw.Write((ushort)PSPBlockID.PSP_CHANNEL_BLOCK);
+			bw.Write((ushort)PSPBlockID.Channel);
 			if (majorVersion > PSPConstants.majorVersion5)
 			{
 				bw.Write(Version6HeaderSize + this.compressedChannelLength);            

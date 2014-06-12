@@ -59,7 +59,7 @@ namespace PaintShopProFiletype.PSPSections
 			this.artist = string.Empty;
 			this.copyRight = string.Empty;
 			this.desc = string.Empty;
-			this.appID = PSPCreatorAppID.PSP_CREATOR_APP_UNKNOWN;
+			this.appID = PSPCreatorAppID.Unknown;
 			this.appVersion = 1;
 		}
 
@@ -80,28 +80,28 @@ namespace PaintShopProFiletype.PSPSections
 				PSPCreatorFieldID field = (PSPCreatorFieldID)fieldID;
 				switch (field)
 				{
-					case PSPCreatorFieldID.PSP_CRTR_FLD_TITLE:
+					case PSPCreatorFieldID.Title:
 						this.title = Encoding.ASCII.GetString(br.ReadBytes((int)fieldLength));
 						break;
-					case PSPCreatorFieldID.PSP_CRTR_FLD_CRT_DATE:
+					case PSPCreatorFieldID.CreateDate:
 						this.createDate = br.ReadUInt32();
 						break;
-					case PSPCreatorFieldID.PSP_CRTR_FLD_MOD_DATE:
+					case PSPCreatorFieldID.ModifiedDate:
 						this.modDate = br.ReadUInt32();
 						break;
-					case PSPCreatorFieldID.PSP_CRTR_FLD_ARTIST:
+					case PSPCreatorFieldID.Artist:
 						this.artist = Encoding.ASCII.GetString(br.ReadBytes((int)fieldLength));
 						break;
-					case PSPCreatorFieldID.PSP_CRTR_FLD_CPYRGHT:
+					case PSPCreatorFieldID.Copyright:
 						this.copyRight = Encoding.ASCII.GetString(br.ReadBytes((int)fieldLength));
 						break;
-					case PSPCreatorFieldID.PSP_CRTR_FLD_DESC:
+					case PSPCreatorFieldID.Description:
 						this.desc = Encoding.ASCII.GetString(br.ReadBytes((int)fieldLength));
 						break;
-					case PSPCreatorFieldID.PSP_CRTR_FLD_APP_ID:
+					case PSPCreatorFieldID.ApplicationID:
 						this.appID = (PSPCreatorAppID)br.ReadUInt32();
 						break;
-					case PSPCreatorFieldID.PSP_CRTR_FLD_APP_VER:
+					case PSPCreatorFieldID.ApplicationVersion:
 						this.appVersion = br.ReadUInt32();
 						break;
 					default:

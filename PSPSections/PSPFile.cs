@@ -56,23 +56,23 @@ namespace PaintShopProFiletype
 		{
 			switch (mode)
 			{
-				case PSPBlendModes.LAYER_BLEND_NORMAL:
+				case PSPBlendModes.Normal:
 					return new UserBlendOps.NormalBlendOp();
-				case PSPBlendModes.LAYER_BLEND_DARKEN:
+				case PSPBlendModes.Darken:
 					return new UserBlendOps.DarkenBlendOp(); 
-				case PSPBlendModes.LAYER_BLEND_LIGHTEN:
+				case PSPBlendModes.Lighten:
 					return new UserBlendOps.LightenBlendOp(); 
-				case PSPBlendModes.LAYER_BLEND_MULTIPLY:
+				case PSPBlendModes.Multiply:
 					return new UserBlendOps.MultiplyBlendOp(); 
-				case PSPBlendModes.LAYER_BLEND_SCREEN:
+				case PSPBlendModes.Screen:
 					return new UserBlendOps.ScreenBlendOp(); 
-				case PSPBlendModes.LAYER_BLEND_OVERLAY:
+				case PSPBlendModes.Overlay:
 					return new UserBlendOps.OverlayBlendOp(); 
-				case PSPBlendModes.LAYER_BLEND_DIFFERENCE:
+				case PSPBlendModes.Difference:
 					return new UserBlendOps.DifferenceBlendOp(); 
-				case PSPBlendModes.LAYER_BLEND_DODGE:
+				case PSPBlendModes.Dodge:
 					return new UserBlendOps.ColorDodgeBlendOp(); 
-				case PSPBlendModes.LAYER_BLEND_BURN:
+				case PSPBlendModes.Burn:
 					return new UserBlendOps.ColorBurnBlendOp(); 
 				default:
 					return new UserBlendOps.NormalBlendOp();
@@ -108,25 +108,25 @@ namespace PaintShopProFiletype
 
 					switch (blockID)
 					{
-						case PSPBlockID.PSP_IMAGE_BLOCK:
+						case PSPBlockID.ImageAttributes:
 							imageAttributes = new GeneralImageAttributes(br, fileHeader.Major);
 							break;
 #if DEBUG
-						case PSPBlockID.PSP_CREATOR_BLOCK:
+						case PSPBlockID.Creator:
 							creator = new CreatorBlock(br, blockLength);
 							break;
 #endif
-						case PSPBlockID.PSP_COLOR_BLOCK:
+						case PSPBlockID.ColorPalette:
 							globalPalette = new ColorPaletteBlock(br, fileHeader.Major);
 							break;
-						case PSPBlockID.PSP_LAYER_START_BLOCK:
+						case PSPBlockID.LayerStart:
 							this.layerBlock = new LayerBlock(br, imageAttributes, fileHeader.Major);
 							break;
-						case PSPBlockID.PSP_EXTENDED_DATA_BLOCK:
+						case PSPBlockID.ExtendedData:
 							extData = new ExtendedDataBlock(br, blockLength);
 							break;
 #if DEBUG
-						case PSPBlockID.PSP_COMPOSITE_IMAGE_BANK_BLOCK:
+						case PSPBlockID.CompositeImageBank:
 							this.compImage = new CompositeImageBlock(br, fileHeader.Major);
 							break;
 #endif
@@ -222,11 +222,11 @@ namespace PaintShopProFiletype
 			{
 				switch (imageAttributes.ResUnit)
 				{
-					case PSP_METRIC.PSP_METRIC_INCH:                        
+					case ResolutionMetric.Inch:                        
 						doc.DpuUnit = MeasurementUnit.Inch;
 						doc.DpuX = doc.DpuY = imageAttributes.ResValue;
 						break;
-					case PSP_METRIC.PSP_METRIC_CM:
+					case ResolutionMetric.Centimeters:
 						doc.DpuUnit = MeasurementUnit.Centimeter;
 						doc.DpuX = doc.DpuY = imageAttributes.ResValue;
 						break;
@@ -249,20 +249,20 @@ namespace PaintShopProFiletype
 					continue;
 				}
 
-				if (info.type == PSPLayerType.keGLTRaster || info.type == PSPLayerType.keGLTFloatingRasterSelection)
+				if (info.type == PSPLayerType.Raster || info.type == PSPLayerType.FloatingRasterSelection)
 				{
 					BitmapLayer layer = new BitmapLayer(info.imageRect.Width, info.imageRect.Height) { Name = info.name, Opacity = info.opacity };
 					UserBlendOp blendOp = BlendModetoBlendOp(info.blendMode);
 					layer.SetBlendOp(blendOp);
-					layer.Visible = (info.layerFlags & PSPLayerProperties.keVisibleFlag) == PSPLayerProperties.keVisibleFlag;
+					layer.Visible = (info.layerFlags & PSPLayerProperties.Visible) == PSPLayerProperties.Visible;
 
 					Rectangle saveRect = info.saveRect;
 
 					short transIndex = -1;
 
-					if (imageAttributes.BitDepth < 24 && extData.Values.ContainsKey(PSPExtendedDataID.PSP_XDATA_TRNS_INDEX))
+					if (imageAttributes.BitDepth < 24 && extData.Values.ContainsKey(PSPExtendedDataID.TransparencyIndex))
 					{
-						transIndex = BitConverter.ToInt16(extData.Values[PSPExtendedDataID.PSP_XDATA_TRNS_INDEX], 0);
+						transIndex = BitConverter.ToInt16(extData.Values[PSPExtendedDataID.TransparencyIndex], 0);
 					}
 
 					if (bitmapInfo.bitmapCount == 1)
@@ -317,22 +317,22 @@ namespace PaintShopProFiletype
 											ushort col = (ushort)(ch.channelData[index] | (ch.channelData[index + 1] << 8)); // PSP format is always little endian 
 											byte clamped = (byte)((col * 255) / 65535);
 
-											if (ch.bitmapType == PSPDIBType.PSP_DIB_IMAGE)
+											if (ch.bitmapType == PSPDIBType.Image)
 											{
 												switch (ch.channelType)
 												{
-													case PSPChannelType.PSP_CHANNEL_RED:
+													case PSPChannelType.Red:
 														ptr->R = clamped;
 														break;
-													case PSPChannelType.PSP_CHANNEL_GREEN:
+													case PSPChannelType.Green:
 														ptr->G = clamped;
 														break;
-													case PSPChannelType.PSP_CHANNEL_BLUE:
+													case PSPChannelType.Blue:
 														ptr->B = clamped;
 														break;
 												} 
 											}
-											else if (ch.bitmapType == PSPDIBType.PSP_DIB_TRANS_MASK)
+											else if (ch.bitmapType == PSPDIBType.TransparencyMask)
 											{
 												ptr->A = ch.channelData[alphaIndex];										
 												alphaIndex++;
@@ -348,22 +348,22 @@ namespace PaintShopProFiletype
 										{
 											ChannelSubBlock ch = bitmapInfo.channels[ci];
 
-											if (ch.bitmapType == PSPDIBType.PSP_DIB_IMAGE)
+											if (ch.bitmapType == PSPDIBType.Image)
 											{
 												switch (ch.channelType)
 												{
-													case PSPChannelType.PSP_CHANNEL_RED:
+													case PSPChannelType.Red:
 														ptr->R = ch.channelData[index];
 														break;
-													case PSPChannelType.PSP_CHANNEL_GREEN:
+													case PSPChannelType.Green:
 														ptr->G = ch.channelData[index];
 														break;
-													case PSPChannelType.PSP_CHANNEL_BLUE:
+													case PSPChannelType.Blue:
 														ptr->B = ch.channelData[index];
 														break;
 												}
 											}
-											else if (ch.bitmapType == PSPDIBType.PSP_DIB_TRANS_MASK)
+											else if (ch.bitmapType == PSPDIBType.TransparencyMask)
 											{
 												ptr->A = ch.channelData[index];
 											}
@@ -380,7 +380,7 @@ namespace PaintShopProFiletype
 
 											switch (ch.bitmapType)
 											{
-												case PSPDIBType.PSP_DIB_IMAGE:
+												case PSPDIBType.Image:
 													ptr->R = entry.rgbRed;
 													ptr->G = entry.rgbGreen;
 													ptr->B = entry.rgbBlue;
@@ -391,7 +391,7 @@ namespace PaintShopProFiletype
 													}
 
 													break;
-												case PSPDIBType.PSP_DIB_TRANS_MASK:
+												case PSPDIBType.TransparencyMask:
 													ptr->A = entry.rgbRed;
 													break;
 											}
@@ -412,7 +412,7 @@ namespace PaintShopProFiletype
 										{
 											ptr->A = 0;
 										}
-										else if ((bitmapInfo.bitmapCount == 2) && bitmapInfo.channels[1].bitmapType == PSPDIBType.PSP_DIB_TRANS_MASK)
+										else if ((bitmapInfo.bitmapCount == 2) && bitmapInfo.channels[1].bitmapType == PSPDIBType.TransparencyMask)
 										{
 											ptr->A = bitmapInfo.channels[1].channelData[index];
 										}
@@ -451,52 +451,52 @@ namespace PaintShopProFiletype
 
 			if (opType == typeof(UserBlendOps.NormalBlendOp))
 			{
-				return PSPBlendModes.LAYER_BLEND_NORMAL;
+				return PSPBlendModes.Normal;
 			}
 			else if (opType == typeof(UserBlendOps.ColorBurnBlendOp))
 			{
-				return PSPBlendModes.LAYER_BLEND_BURN;
+				return PSPBlendModes.Burn;
 			}
 			else if (opType == typeof(UserBlendOps.ColorDodgeBlendOp))
 			{
-				return PSPBlendModes.LAYER_BLEND_DODGE;
+				return PSPBlendModes.Dodge;
 			}
 			else if (opType == typeof(UserBlendOps.DarkenBlendOp))
 			{
-				return PSPBlendModes.LAYER_BLEND_DARKEN;
+				return PSPBlendModes.Darken;
 			}
 			else if (opType == typeof(UserBlendOps.DifferenceBlendOp))
 			{
-				return PSPBlendModes.LAYER_BLEND_DIFFERENCE;
+				return PSPBlendModes.Difference;
 			}
 			else if (opType == typeof(UserBlendOps.LightenBlendOp))
 			{
-				return PSPBlendModes.LAYER_BLEND_LIGHTEN;
+				return PSPBlendModes.Lighten;
 			}
 			else if (opType == typeof(UserBlendOps.MultiplyBlendOp))
 			{
-				return PSPBlendModes.LAYER_BLEND_MULTIPLY;
+				return PSPBlendModes.Multiply;
 			}
 			else if (opType == typeof(UserBlendOps.OverlayBlendOp))
 			{
-				return PSPBlendModes.LAYER_BLEND_OVERLAY;
+				return PSPBlendModes.Overlay;
 			}
 			else if (opType == typeof(UserBlendOps.ScreenBlendOp))
 			{
-				return PSPBlendModes.LAYER_BLEND_SCREEN;
+				return PSPBlendModes.Screen;
 			} 
 
-			return PSPBlendModes.LAYER_BLEND_NORMAL;
+			return PSPBlendModes.Normal;
 		}
 
 		private static PSPCompression CompressionFromTokenFormat(CompressionFormats format)
 		{
-			PSPCompression comp = PSPCompression.PSP_COMP_NONE;
+			PSPCompression comp = PSPCompression.None;
 
 			switch (format)
 			{
 				case CompressionFormats.LZ77:
-					comp = PSPCompression.PSP_COMP_LZ77;
+					comp = PSPCompression.LZ77;
 					break;
 			}
 
@@ -519,17 +519,17 @@ namespace PaintShopProFiletype
 					switch (majorVersion)
 					{
 						case PSPConstants.majorVersion5:
-							channels[i].bitmapType = PSPDIBType.PSP_DIB_THUMBNAIL;
+							channels[i].bitmapType = PSPDIBType.Thumbnail;
 							break;
 						default:					
-							channels[i].bitmapType = i < 3 ? PSPDIBType.PSP_DIB_COMPOSITE : PSPDIBType.PSP_DIB_COMPOSITE_TRANS_MASK;
+							channels[i].bitmapType = i < 3 ? PSPDIBType.Composite : PSPDIBType.CompositeTransparencyMask;
 							break;
 					}
 
 				}
 				else
 				{
-					channels[i].bitmapType = i < 3 ? PSPDIBType.PSP_DIB_IMAGE : PSPDIBType.PSP_DIB_TRANS_MASK;
+					channels[i].bitmapType = i < 3 ? PSPDIBType.Image : PSPDIBType.TransparencyMask;
 				}
 				
 				channels[i].channelData = null;
@@ -538,16 +538,16 @@ namespace PaintShopProFiletype
 				switch (i)
 				{
 					case 0:
-						channels[i].channelType = PSPChannelType.PSP_CHANNEL_RED;
+						channels[i].channelType = PSPChannelType.Red;
 						break;
 					case 1:
-						channels[i].channelType = PSPChannelType.PSP_CHANNEL_GREEN;
+						channels[i].channelType = PSPChannelType.Green;
 						break;
 					case 2: 
-						channels[i].channelType = PSPChannelType.PSP_CHANNEL_BLUE;
+						channels[i].channelType = PSPChannelType.Blue;
 						break;
 					case 3:
-						channels[i].channelType = PSPChannelType.PSP_CHANNEL_COMPOSITE;
+						channels[i].channelType = PSPChannelType.Composite;
 						break;
 				}
 			}
@@ -602,11 +602,11 @@ namespace PaintShopProFiletype
 
 					switch (imageAttributes.CompressionType)
 					{
-						case PSPCompression.PSP_COMP_NONE:
+						case PSPCompression.None:
 							compBuffer = inData;
 							channels[channelIndex].uncompressedChannelLength = 0;
 							break;
-						case PSPCompression.PSP_COMP_LZ77:
+						case PSPCompression.LZ77:
 
 							using (MemoryStream ms = new MemoryStream())
 							{
@@ -720,11 +720,11 @@ namespace PaintShopProFiletype
 				{
 					case MeasurementUnit.Centimeter:
 						this.imageAttributes.ResValue = input.DpuX;
-						this.imageAttributes.ResUnit = PSP_METRIC.PSP_METRIC_CM;
+						this.imageAttributes.ResUnit = ResolutionMetric.Centimeters;
 						break;
 					case MeasurementUnit.Inch:
 						this.imageAttributes.ResValue = input.DpuX;
-						this.imageAttributes.ResUnit = PSP_METRIC.PSP_METRIC_INCH;
+						this.imageAttributes.ResUnit = ResolutionMetric.Inch;
 						break;
 				}
 
@@ -755,7 +755,7 @@ namespace PaintShopProFiletype
 				
 				if (flatImage)
 				{
-					this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.keGCFlatImage);
+					this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.FlatImage);
 				}
 
 				if (majorVersion > PSPConstants.majorVersion5)
@@ -768,7 +768,7 @@ namespace PaintShopProFiletype
 						height = input.Height,
 						bitDepth = 24,
 						colorCount = (1 << 24),
-						compositeImageType = PSPCompositeImageType.PSP_IMAGE_COMPOSITE,
+						compositeImageType = PSPCompositeImageType.Composite,
 						compressionType = imageAttributes.CompressionType,
 						planeCount = 1,
 					};
@@ -777,15 +777,15 @@ namespace PaintShopProFiletype
 						chunkSize = 24,
 						bitDepth = 24,
 						colorCount = (1 << 24),
-						compositeImageType = PSPCompositeImageType.PSP_IMAGE_THUMBNAIL,
-						compressionType = PSPCompression.PSP_COMP_JPEG,
+						compositeImageType = PSPCompositeImageType.Thumbnail,
+						compressionType = PSPCompression.JPEG,
 						planeCount = 1
 					};
 					JPEGCompositeInfoChunk jpgChunk = new JPEGCompositeInfoChunk()
 					{
 						chunkSize = 14,
 						unCompressedSize = 0,
-						imageType = PSPDIBType.PSP_DIB_THUMBNAIL
+						imageType = PSPDIBType.Thumbnail
 					};
 					CompositeImageInfoChunk infoChunk = new CompositeImageInfoChunk()
 					{
@@ -865,12 +865,12 @@ namespace PaintShopProFiletype
 
 					}
 
-					this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.keGCComposite);
-					this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.keGCThumbnail);
+					this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.Composite);
+					this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.Thumbnail);
 
 					if (infoChunk.bitmapCount == 2)
 					{
-						this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.keGCCompositeTransparency);
+						this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.CompositeTransparency);
 					}
 
 					this.compImage = new CompositeImageBlock(new CompositeImageAttributesChunk[2] { jpgAttr, normAttr }, jpgChunk, infoChunk);
@@ -884,7 +884,7 @@ namespace PaintShopProFiletype
 						width  = scaleSize.Width,
 						height = scaleSize.Height,
 						bitDepth = 24,
-						compressionType = PSPCompression.PSP_COMP_LZ77,
+						compressionType = PSPCompression.LZ77,
 						planeCount = 1,
 						colorCount = (1 << 24),
 						paletteEntryCount = 0,
@@ -925,14 +925,14 @@ namespace PaintShopProFiletype
 						name = layer.Name,
 						opacity = layer.Opacity,
 						saveRect = savedBounds,
-						type = majorVersion > PSPConstants.majorVersion5 ? PSPLayerType.keGLTRaster : 0
+						type = majorVersion > PSPConstants.majorVersion5 ? PSPLayerType.Raster : 0
 						// the LAYER_TYPE_NORMAL value in PSP 5 and older is 0 
 					};
 					infoChunk.chunkSize = majorVersion > PSPConstants.majorVersion5 ? (uint)(119 + 2 + layer.Name.Length) : 375;
 					infoChunk.blendMode = BlendOptoBlendMode(layer.BlendOp);
 					if (layer.Visible)
 					{
-						infoChunk.layerFlags |= PSPLayerProperties.keVisibleFlag;
+						infoChunk.layerFlags |= PSPLayerProperties.Visible;
 					}
 					layerInfoChunks[i] = infoChunk;
 
