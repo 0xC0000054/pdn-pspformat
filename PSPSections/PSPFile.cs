@@ -259,7 +259,7 @@ namespace PaintShopProFiletype
 						doc.DpuUnit = MeasurementUnit.Inch;
 						doc.DpuX = doc.DpuY = imageAttributes.ResValue;
 						break;
-					case ResolutionMetric.Centimeters:
+					case ResolutionMetric.Centimeter:
 						doc.DpuUnit = MeasurementUnit.Centimeter;
 						doc.DpuX = doc.DpuY = imageAttributes.ResValue;
 						break;
@@ -755,7 +755,7 @@ namespace PaintShopProFiletype
 				{
 					case MeasurementUnit.Centimeter:
 						this.imageAttributes.ResValue = input.DpuX;
-						this.imageAttributes.ResUnit = ResolutionMetric.Centimeters;
+						this.imageAttributes.ResUnit = ResolutionMetric.Centimeter;
 						break;
 					case MeasurementUnit.Inch:
 						this.imageAttributes.ResValue = input.DpuX;

@@ -135,7 +135,7 @@ namespace PaintShopProFiletype.PSPSections
     {
         Undefined = 0, // Metric unknown
         Inch, // Resolution is in inches
-        Centimeters, // Resolution is in centimeters
+        Centimeter, // Resolution is in centimeters
     };
 
     /* Creator application identifiers.
