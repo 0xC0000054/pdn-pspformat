@@ -34,13 +34,6 @@ namespace PaintShopProFiletype.PSPSections
 			return (uint)t.TotalSeconds;
 		}
 
-		private static uint GetAppVersionPacked()
-		{
-			Version version = typeof(CreatorBlock).Assembly.GetName().Version;
-
-			return (uint)((version.Major << 24) | (version.Minor << 16) | (version.Build << 8) | version.Revision);
-		}
-
 #if DEBUG
 		public DateTime CreateDate
 		{
