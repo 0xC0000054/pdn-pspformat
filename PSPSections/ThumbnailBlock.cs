@@ -2,92 +2,102 @@
 
 namespace PaintShopProFiletype.PSPSections
 {
-    /// <summary>
-    /// Only present in PSP 5 (or earlier?) files
-    /// </summary>
-    class ThumbnailBlock
-    {
-        internal int width;
-        internal int height;
-        internal ushort bitDepth;
-        internal PSPCompression compressionType; // ushort
-        internal ushort planeCount;
-        internal uint colorCount;
-        internal uint paletteEntryCount;
-        internal ushort channelCount;
-        internal ChannelSubBlock[] channelBlocks;
-       
-        public ThumbnailBlock()
-        {
-        }
+	/// <summary>
+	/// Only present in PSP 5 (or earlier?) files
+	/// </summary>
+	internal sealed class ThumbnailBlock
+	{
+		internal int width;
+		internal int height;
+		internal ushort bitDepth;
+		internal PSPCompression compressionType; // ushort
+		internal ushort planeCount;
+		internal uint colorCount;
+		internal uint paletteEntryCount;
+		internal ushort channelCount;
+		internal ChannelSubBlock[] channelBlocks;
+
+		private const uint InitalBlockLength = 24U;
+
+		public ThumbnailBlock(int width, int height)
+		{
+			this.width = width;
+			this.height = height;
+			this.bitDepth = 24;
+			this.compressionType = PSPCompression.LZ77;
+			this.planeCount = 1;
+			this.colorCount = (1 << 24);
+			this.paletteEntryCount = 0;
+			this.channelCount = 3;
+		}
 
 #if DEBUG		
-        internal ColorPaletteBlock paletteBlock;
+		internal ColorPaletteBlock paletteBlock;
 
-        public ThumbnailBlock(BinaryReader br)
-        {
-            this.width = br.ReadInt32();
-            this.height = br.ReadInt32();
-            this.bitDepth = br.ReadUInt16();
-            this.compressionType = (PSPCompression)br.ReadUInt16();
-            this.planeCount = br.ReadUInt16();
-            this.colorCount = br.ReadUInt32();
-            this.paletteEntryCount = br.ReadUInt32();
-            this.channelCount = br.ReadUInt16();
+		public ThumbnailBlock(BinaryReader br)
+		{
+			this.width = br.ReadInt32();
+			this.height = br.ReadInt32();
+			this.bitDepth = br.ReadUInt16();
+			this.compressionType = (PSPCompression)br.ReadUInt16();
+			this.planeCount = br.ReadUInt16();
+			this.colorCount = br.ReadUInt32();
+			this.paletteEntryCount = br.ReadUInt32();
+			this.channelCount = br.ReadUInt16();
 
-            this.channelBlocks = new ChannelSubBlock[(int)channelCount];
+			this.channelBlocks = new ChannelSubBlock[(int)channelCount];
 
-            uint head = 0;
-            ushort blockID = 0;
-            uint initialLength = 0;
-            uint totalLength = 0;
-            if (this.bitDepth < 24 && this.paletteEntryCount > 0)
-            {
-                head = br.ReadUInt32();
-                blockID = br.ReadUInt16();
-                initialLength = br.ReadUInt32();
-                totalLength = br.ReadUInt32();
+			uint head = 0;
+			ushort blockID = 0;
+			uint initialLength = 0;
+			uint totalLength = 0;
+			if (this.bitDepth < 24 && this.paletteEntryCount > 0)
+			{
+				head = br.ReadUInt32();
+				blockID = br.ReadUInt16();
+				initialLength = br.ReadUInt32();
+				totalLength = br.ReadUInt32();
 
-                this.paletteBlock = new ColorPaletteBlock(br, PSPConstants.majorVersion5);
-            }
+				this.paletteBlock = new ColorPaletteBlock(br, PSPConstants.majorVersion5);
+			}
 
 
-            for (int i = 0; i < channelCount; i++)
-            {
-                head = br.ReadUInt32();
-                blockID = br.ReadUInt16();
-                initialLength = br.ReadUInt32();
-                totalLength = br.ReadUInt32();
+			for (int i = 0; i < channelCount; i++)
+			{
+				head = br.ReadUInt32();
+				blockID = br.ReadUInt16();
+				initialLength = br.ReadUInt32();
+				totalLength = br.ReadUInt32();
 
-                ChannelSubBlock ch = new ChannelSubBlock(br, this.compressionType, PSPConstants.majorVersion5);
-                this.channelBlocks[i] = ch;
-            }
+				ChannelSubBlock ch = new ChannelSubBlock(br, this.compressionType, PSPConstants.majorVersion5);
+				this.channelBlocks[i] = ch;
+			}
 
-        } 
+		} 
 #endif
 
-        public void Save(BinaryWriterEx bw)
-        {
-            bw.Write(PSPConstants.blockIdentifier);
-            bw.Write(PSPConstants.v5ThumbnailBlock);
-            bw.Write(24U);
+		public void Save(BinaryWriterEx bw)
+		{
+			bw.Write(PSPConstants.blockIdentifier);
+			bw.Write(PSPConstants.v5ThumbnailBlock);
+			bw.Write(InitalBlockLength);
 
-            using (new PSPUtil.BlockLengthWriter(bw))
-            {
-                bw.Write(this.width);
-                bw.Write(this.height);
-                bw.Write(this.bitDepth);
-                bw.Write((ushort)this.compressionType);
-                bw.Write(this.planeCount);
-                bw.Write(this.colorCount);
-                bw.Write(this.paletteEntryCount);
-                bw.Write(this.channelCount);
+			using (new PSPUtil.BlockLengthWriter(bw))
+			{
+				bw.Write(this.width);
+				bw.Write(this.height);
+				bw.Write(this.bitDepth);
+				bw.Write((ushort)this.compressionType);
+				bw.Write(this.planeCount);
+				bw.Write(this.colorCount);
+				bw.Write(this.paletteEntryCount);
+				bw.Write(this.channelCount);
 
-                for (int i = 0; i < channelCount; i++)
-                {
-                    this.channelBlocks[i].Save(bw, PSPConstants.majorVersion5);
-                }
-            }
-        }
-    }
+				for (int i = 0; i < channelCount; i++)
+				{
+					this.channelBlocks[i].Save(bw, PSPConstants.majorVersion5);
+				}
+			}
+		}
+	}
 }
