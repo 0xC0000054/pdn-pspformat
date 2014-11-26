@@ -2,7 +2,7 @@
 
 namespace PaintShopProFiletype.PSPSections
 {
-    struct ColorPaletteBlock
+    internal sealed class ColorPaletteBlock
     {
         public uint chunkSize;
         public uint entriesCount;

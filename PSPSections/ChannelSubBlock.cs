@@ -3,7 +3,7 @@ using Ionic.Zlib;
 
 namespace PaintShopProFiletype.PSPSections
 {
-	struct ChannelSubBlock
+	internal sealed class ChannelSubBlock
 	{
 		public uint chunkSize;
 		public uint compressedChannelLength;
