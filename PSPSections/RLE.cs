@@ -1,11 +1,7 @@
-﻿using System;
-using System.IO;
-
-namespace PaintShopProFiletype.PSPSections
+﻿namespace PaintShopProFiletype.PSPSections
 {
 	internal static class RLE
 	{
-
 		public static byte[] Decompress(byte[] compressedData, uint uncompressedLength)
 		{
 			byte[] uncompressedData = new byte[uncompressedLength];
