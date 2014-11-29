@@ -19,17 +19,14 @@ namespace PaintShopProFiletype.PSPSections
 		[NonSerialized]
 		private uint appVersion;
 
-		[NonSerialized]
-		private uint blockLength;
-
-		private static readonly DateTime unixEpochLocal = new DateTime(1970, 1, 1).ToLocalTime();
+		private static readonly DateTime UnixEpochLocal = new DateTime(1970, 1, 1).ToLocalTime();
 		/// <summary>
 		/// Gets the current date and time in Unix format (the number of seconds from 1/1/1970)
 		/// </summary>
 		/// <returns>The current date and time in Unix format</returns> 
 		private static uint GetCurrentUnixTimestamp()
 		{
-			TimeSpan t = (DateTime.Now - unixEpochLocal);
+			TimeSpan t = (DateTime.Now - UnixEpochLocal);
 			
 			return (uint)t.TotalSeconds;
 		}
@@ -39,7 +36,7 @@ namespace PaintShopProFiletype.PSPSections
 		{
 			get
 			{
-				return unixEpochLocal.AddSeconds(createDate);
+				return UnixEpochLocal.AddSeconds(createDate);
 			}
 		}
 
@@ -47,7 +44,7 @@ namespace PaintShopProFiletype.PSPSections
 		{ 
 			get
 			{
-				return unixEpochLocal.AddSeconds(modDate);
+				return UnixEpochLocal.AddSeconds(modDate);
 			}
 		}
 #endif
@@ -64,46 +61,40 @@ namespace PaintShopProFiletype.PSPSections
 			this.appVersion = 1;
 		}
 
-		public CreatorBlock(BinaryReader br, uint blockLength)
+		public CreatorBlock(BinaryReader reader, uint blockLength)
 		{
-			this.blockLength = blockLength;
-			this.Load(br);
-		}
+			long endOffset = reader.BaseStream.Position + (long)blockLength;
 
-		private void Load(BinaryReader br)
-		{
-			long endOffset = br.BaseStream.Position + (long)blockLength;
-
-			while (br.BaseStream.Position < endOffset && br.ReadUInt32() == PSPConstants.fieldIdentifier)
+			while (reader.BaseStream.Position < endOffset && reader.ReadUInt32() == PSPConstants.fieldIdentifier)
 			{
-				PSPCreatorFieldID field = (PSPCreatorFieldID)br.ReadUInt16();
-				uint fieldLength = br.ReadUInt32();
+				PSPCreatorFieldID field = (PSPCreatorFieldID)reader.ReadUInt16();
+				uint fieldLength = reader.ReadUInt32();
 
 				switch (field)
 				{
 					case PSPCreatorFieldID.Title:
-						this.title = Encoding.ASCII.GetString(br.ReadBytes((int)fieldLength)).Trim();
+						this.title = Encoding.ASCII.GetString(reader.ReadBytes((int)fieldLength)).Trim();
 						break;
 					case PSPCreatorFieldID.CreateDate:
-						this.createDate = br.ReadUInt32();
+						this.createDate = reader.ReadUInt32();
 						break;
 					case PSPCreatorFieldID.ModifiedDate:
-						this.modDate = br.ReadUInt32();
+						this.modDate = reader.ReadUInt32();
 						break;
 					case PSPCreatorFieldID.Artist:
-						this.artist = Encoding.ASCII.GetString(br.ReadBytes((int)fieldLength)).Trim();
+						this.artist = Encoding.ASCII.GetString(reader.ReadBytes((int)fieldLength)).Trim();
 						break;
 					case PSPCreatorFieldID.Copyright:
-						this.copyRight = Encoding.ASCII.GetString(br.ReadBytes((int)fieldLength)).Trim();
+						this.copyRight = Encoding.ASCII.GetString(reader.ReadBytes((int)fieldLength)).Trim();
 						break;
 					case PSPCreatorFieldID.Description:
-						this.description = Encoding.ASCII.GetString(br.ReadBytes((int)fieldLength)).Trim();
+						this.description = Encoding.ASCII.GetString(reader.ReadBytes((int)fieldLength)).Trim();
 						break;
 					case PSPCreatorFieldID.ApplicationID:
-						this.appID = (PSPCreatorAppID)br.ReadUInt32();
+						this.appID = (PSPCreatorAppID)reader.ReadUInt32();
 						break;
 					case PSPCreatorFieldID.ApplicationVersion:
-						this.appVersion = br.ReadUInt32();
+						this.appVersion = reader.ReadUInt32();
 						break;
 					default:
 						break;
