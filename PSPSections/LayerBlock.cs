@@ -13,7 +13,7 @@ namespace PaintShopProFiletype.PSPSections
 		public uint destRange;
 	}
 
-	struct LayerBitmapInfoChunk
+	internal sealed class LayerBitmapInfoChunk
 	{
 		public uint chunkSize;
 		public ushort bitmapCount;
@@ -73,7 +73,7 @@ namespace PaintShopProFiletype.PSPSections
 		}
 	}
 
-	struct LayerInfoChunk
+	internal sealed class LayerInfoChunk
 	{
 		public uint chunkSize;
 		public string name;
@@ -223,7 +223,7 @@ namespace PaintShopProFiletype.PSPSections
 		}
 	}
 
-	class LayerBlock
+	internal sealed class LayerBlock
 	{
 		private LayerInfoChunk[] layerInfoChunks;
 		private LayerBitmapInfoChunk[] layerBitmapInfo;
