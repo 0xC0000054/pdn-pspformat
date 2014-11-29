@@ -97,6 +97,7 @@ namespace PaintShopProFiletype.PSPSections
     [Flags]
     enum PSPLayerProperties
     {
+        None = 0,
         Visible = 1, // Layer is visible
         MaskPresence = 2 // Layer has a mask
     }
