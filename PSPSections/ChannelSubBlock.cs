@@ -15,7 +15,7 @@ namespace PaintShopProFiletype.PSPSections
 		private const uint Version6HeaderSize = 16U;
 		private const uint Version5HeaderSize = 12U;
 
-		public ChannelSubBlock(BinaryReader br, PSPCompression compressionType, ushort majorVersion)
+		public ChannelSubBlock(BinaryReader br, PSPCompression compression, ushort majorVersion)
 		{
 			this.chunkSize = majorVersion > PSPConstants.majorVersion5 ? br.ReadUInt32() : 0U;
 			this.compressedChannelLength = br.ReadUInt32();
@@ -32,7 +32,7 @@ namespace PaintShopProFiletype.PSPSections
 
 			if (compressedChannelLength > 0U)
 			{
-				switch (compressionType)
+				switch (compression)
 				{
 					case PSPCompression.None:
 						this.channelData = br.ReadBytes((int)compressedChannelLength);
@@ -52,24 +52,28 @@ namespace PaintShopProFiletype.PSPSections
 						codec.OutputBuffer = this.channelData;
 						codec.InitializeInflate();
 
-						int rs = codec.Inflate(FlushType.Finish);
+						int status = codec.Inflate(FlushType.Finish);
 						
 						codec.EndInflate();
 
-#if DEBUG
-						System.Diagnostics.Debug.Assert(rs == ZlibConstants.Z_OK || rs == ZlibConstants.Z_STREAM_END);
-#else
-						if (rs != ZlibConstants.Z_OK && rs != ZlibConstants.Z_STREAM_END)
+						if (status != ZlibConstants.Z_OK && status != ZlibConstants.Z_STREAM_END)
 						{
 							throw new ZlibException(codec.Message);
 						}
-#endif
 
 						break;
 				} 
 			}
-		  
+		}
 
+		public ChannelSubBlock(ushort majorVersion, uint uncompressedSize)
+		{
+			this.chunkSize = majorVersion > PSPConstants.majorVersion5 ? Version6HeaderSize : Version5HeaderSize;
+			this.compressedChannelLength = 0;
+			this.uncompressedChannelLength = uncompressedSize;
+			this.bitmapType = PSPDIBType.Image;
+			this.channelType = PSPChannelType.Composite;
+			this.channelData = null;
 		}
 
 		public void Save(BinaryWriter bw, ushort majorVersion)
