@@ -3,7 +3,7 @@ using System.IO;
 
 namespace PaintShopProFiletype.PSPSections
 {
-	struct CompositeImageAttributesChunk
+	internal sealed class CompositeImageAttributesChunk
 	{
 		public uint chunkSize;
 		public int width;
@@ -36,6 +36,17 @@ namespace PaintShopProFiletype.PSPSections
 
 		} 
 #endif
+		public CompositeImageAttributesChunk(int width, int height, PSPCompositeImageType imageType, PSPCompression compression)
+		{
+			this.chunkSize = HeaderSize;
+			this.width = width;
+			this.height = height;
+			this.bitDepth = 24;
+			this.compressionType = compression;
+			this.planeCount = 1;
+			this.colorCount = (1 << 24);
+			this.compositeImageType = imageType;
+		}
 
 		public void Save(BinaryWriter bw)
 		{
@@ -53,7 +64,7 @@ namespace PaintShopProFiletype.PSPSections
 		}
 	}
 
-	struct JPEGCompositeInfoChunk
+	internal sealed class JPEGCompositeInfoChunk
 	{
 		public uint chunkSize;
 		public uint compressedSize;
@@ -81,6 +92,14 @@ namespace PaintShopProFiletype.PSPSections
 			this.imageData = br.ReadBytes((int)this.compressedSize);
 		} 
 #endif
+		public JPEGCompositeInfoChunk()
+		{
+			this.chunkSize = HeaderSize;
+			this.unCompressedSize = 0;
+			this.imageType = PSPDIBType.Thumbnail;
+			this.imageData = null;
+		}
+
 
 		public void Save(BinaryWriter bw)
 		{
@@ -95,13 +114,15 @@ namespace PaintShopProFiletype.PSPSections
 		}
 	}
 
-	struct CompositeImageInfoChunk
+	internal sealed class CompositeImageInfoChunk
 	{
 		public uint chunkSize;
 		public ushort bitmapCount;
 		public ushort channelCount;
-		public ColorPaletteBlock? paletteSubBlock;
+		public ColorPaletteBlock paletteSubBlock;
 		public ChannelSubBlock[] channelBlocks;
+
+		private const uint HeaderSize = 8U;
 
 #if DEBUG
 		public CompositeImageInfoChunk(BinaryReader br, CompositeImageAttributesChunk attr, ushort majorVersion)
@@ -112,7 +133,7 @@ namespace PaintShopProFiletype.PSPSections
 			this.paletteSubBlock = null;
 			this.channelBlocks = new ChannelSubBlock[channelCount];
 
-			uint dif = chunkSize - 8U;
+			uint dif = chunkSize - HeaderSize;
 			if (dif > 0)
 			{
 				br.BaseStream.Position += (long)dif;
@@ -138,8 +159,16 @@ namespace PaintShopProFiletype.PSPSections
 			}
 
 
-		} 
-#endif
+		}
+#endif       
+		public CompositeImageInfoChunk()
+		{
+			this.chunkSize = HeaderSize;
+			this.bitmapCount = 1;
+			this.channelCount = 3;
+			this.paletteSubBlock = null;
+			this.channelBlocks = null;
+		}
 
 		public void Save(BinaryWriter writer, ushort majorVersion)
 		{
@@ -169,10 +198,11 @@ namespace PaintShopProFiletype.PSPSections
 		private JPEGCompositeInfoChunk jpegChunk;
 		private CompositeImageInfoChunk imageChunk;
 
+		private const uint HeaderSize = 8U;
 
 		public CompositeImageBlock(CompositeImageAttributesChunk[] attributes, JPEGCompositeInfoChunk jpg, CompositeImageInfoChunk info)
 		{
-			this.blockSize = 8U;
+			this.blockSize = HeaderSize;
 			this.attrChunkCount = (uint)attributes.Length;
 			this.attrChunks = attributes;
 			this.jpegChunk = jpg;
@@ -185,14 +215,14 @@ namespace PaintShopProFiletype.PSPSections
 			this.Load(br, majorVersion);
 		}
 
-		public void Load(BinaryReader br, ushort majorVersion)
+		private void Load(BinaryReader br, ushort majorVersion)
 		{
 			this.blockSize = br.ReadUInt32();
 			this.attrChunkCount = br.ReadUInt32();
 
-			if ((this.blockSize - 8U) > 0)
+			if ((this.blockSize - HeaderSize) > 0)
 			{
-				br.BaseStream.Position += (long)(this.blockSize - 8U);
+				br.BaseStream.Position += (long)(this.blockSize - HeaderSize);
 			}
 
 			this.attrChunks = new CompositeImageAttributesChunk[(int)this.attrChunkCount];
@@ -237,7 +267,6 @@ namespace PaintShopProFiletype.PSPSections
 		}
 
 #endif
-
 
 		/// <summary>
 		/// Saves the CompositeImageBlock to the file.
