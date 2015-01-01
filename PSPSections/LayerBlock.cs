@@ -20,12 +20,22 @@ namespace PaintShopProFiletype.PSPSections
 		public ushort channelCount;
 		public ChannelSubBlock[] channels;
 
+		private const uint HeaderSize = 8U;
+
 		public LayerBitmapInfoChunk(BinaryReader br, GeneralImageAttributes attr, ushort majorVersion)
 		{
+			long startOffset = br.BaseStream.Position;
+
 			this.chunkSize = br.ReadUInt32();
 			this.bitmapCount = br.ReadUInt16();
 			this.channelCount = br.ReadUInt16();
 			this.channels = new ChannelSubBlock[channelCount];
+
+			long dif = this.chunkSize - (br.BaseStream.Position - startOffset);
+			if (dif > 0L)
+			{
+				br.BaseStream.Position += dif;
+			}
 
 			for (int i = 0; i < channelCount; i++)
 			{
@@ -33,8 +43,7 @@ namespace PaintShopProFiletype.PSPSections
 				ushort blockID = br.ReadUInt16();
 				uint size = br.ReadUInt32();
 
-				ChannelSubBlock block = new ChannelSubBlock(br, attr.CompressionType, majorVersion);
-				this.channels[i] = block;
+				this.channels[i] = new ChannelSubBlock(br, attr.CompressionType, majorVersion);
 			}
 		}
 
@@ -52,9 +61,16 @@ namespace PaintShopProFiletype.PSPSections
 				uint initialSize = br.ReadUInt32();
 				uint size = br.ReadUInt32();
 
-				ChannelSubBlock block = new ChannelSubBlock(br, attr.CompressionType, PSPConstants.majorVersion5);
-				this.channels[i] = block;
+				this.channels[i] = new ChannelSubBlock(br, attr.CompressionType, PSPConstants.majorVersion5);
 			}
+		}
+
+		public LayerBitmapInfoChunk(int bitmapCount, int channelCount)
+		{
+			this.chunkSize = HeaderSize;
+			this.bitmapCount = (ushort)bitmapCount;
+			this.channelCount = (ushort)channelCount;
+			this.channels = null;
 		}
 
 		public void Save(BinaryWriter bw, ushort majorVersion)
@@ -99,14 +115,9 @@ namespace PaintShopProFiletype.PSPSections
 		public byte useHighlightColor;
 		public uint highlightColor;
 
-		public uint fileMajorVersion;
-
 		public LayerInfoChunk(BinaryReader br, ushort majorVersion)
 		{
-			this.fileMajorVersion = majorVersion;
-
-			long pos = br.BaseStream.Position;
-			
+			long startOffset = br.BaseStream.Position;
 		   
 			if (majorVersion > PSPConstants.majorVersion5)
 			{
@@ -163,16 +174,43 @@ namespace PaintShopProFiletype.PSPSections
 			} 
 
 
-			long dif = this.chunkSize - (br.BaseStream.Position - pos);
+			long dif = this.chunkSize - (br.BaseStream.Position - startOffset);
 			if (dif > 0)
 			{
 				br.BaseStream.Position += dif;
 			}
 		}
 
-		public void Save(BinaryWriterEx bw)
+		public LayerInfoChunk(PaintDotNet.Layer layer, PSPBlendModes blendMode, Rectangle savedBounds, ushort majorVersion)
 		{
-			if (fileMajorVersion > PSPConstants.majorVersion5)
+			this.chunkSize = majorVersion > PSPConstants.majorVersion5 ? (uint)(119 + 2 + layer.Name.Length) : 0U;
+			this.name = layer.Name;
+			this.imageRect = layer.Bounds;
+			this.saveRect = savedBounds;
+			this.opacity = layer.Opacity;
+			this.blendMode = blendMode;
+			this.layerFlags = PSPLayerProperties.None;
+			if (layer.Visible)
+			{
+				this.layerFlags |= PSPLayerProperties.Visible;
+			}
+			this.protectedTransparency = 0;
+			this.linkGroup = 0;
+			this.maskRect = Rectangle.Empty;
+			this.saveMaskRect = Rectangle.Empty;
+			this.maskLinked = 0;
+			this.invertMaskOnBlend = 0;
+			this.blendRangeCount = 0;
+			this.blendRanges = null;
+			this.v5BitmapCount = 0;
+			this.v5ChannelCount = 0;
+			this.useHighlightColor = 0;
+			this.highlightColor = 0;
+		}
+
+		public void Save(BinaryWriterEx bw, ushort majorVersion)
+		{
+			if (majorVersion > PSPConstants.majorVersion5)
 			{           
 				bw.Write(this.chunkSize);
 				byte[] nameBytes = Encoding.ASCII.GetBytes(this.name);
@@ -215,7 +253,7 @@ namespace PaintShopProFiletype.PSPSections
 				bw.Write(0U);
 				bw.Write(0U);
 			}
-			if (fileMajorVersion <= PSPConstants.majorVersion5)
+			if (majorVersion <= PSPConstants.majorVersion5)
 			{
 				bw.Write(this.v5BitmapCount);
 				bw.Write(this.v5ChannelCount);
