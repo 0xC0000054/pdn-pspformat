@@ -144,11 +144,9 @@ namespace PaintShopProFiletype
 						case PSPBlockID.ImageAttributes:
 							imageAttributes = new GeneralImageAttributes(br, fileHeader.Major);
 							break;
-#if DEBUG
 						case PSPBlockID.Creator:
 							creator = new CreatorBlock(br, blockLength);
 							break;
-#endif
 						case PSPBlockID.ColorPalette:
 							globalPalette = new ColorPaletteBlock(br, fileHeader.Major);
 							break;
@@ -544,11 +542,11 @@ namespace PaintShopProFiletype
 		{
 			ChannelSubBlock[] channels = new ChannelSubBlock[channelCount];
 			
-			int channelSize = (savedBounds.Width * savedBounds.Height);
+			int channelSize = savedBounds.Width * savedBounds.Height;
 
 			for (int i = 0; i < channelCount; i++)
 			{
-				channels[i].chunkSize = majorVersion > PSPConstants.majorVersion5 ? 16U : 12U;
+				channels[i] = new ChannelSubBlock(majorVersion, (uint)channelSize);
 				if (composite)
 				{
 					switch (majorVersion)
@@ -567,9 +565,6 @@ namespace PaintShopProFiletype
 					channels[i].bitmapType = i < 3 ? PSPDIBType.Image : PSPDIBType.TransparencyMask;
 				}
 				
-				channels[i].channelData = null;
-				channels[i].compressedChannelLength = 0;
-				channels[i].uncompressedChannelLength = (uint)channelSize;
 				switch (i)
 				{
 					case 0:
@@ -795,45 +790,16 @@ namespace PaintShopProFiletype
 
 				if (majorVersion > PSPConstants.majorVersion5)
 				{
+					Size jpegThumbSize = GetThumbnailDimensions(input.Width, input.Height, 200);
 
-					CompositeImageAttributesChunk normAttr = new CompositeImageAttributesChunk()
-					{
-						chunkSize = 24,
-						width = input.Width,
-						height = input.Height,
-						bitDepth = 24,
-						colorCount = (1 << 24),
-						compositeImageType = PSPCompositeImageType.Composite,
-						compressionType = imageAttributes.CompressionType,
-						planeCount = 1,
-					};
-					CompositeImageAttributesChunk jpgAttr = new CompositeImageAttributesChunk()
-					{
-						chunkSize = 24,
-						bitDepth = 24,
-						colorCount = (1 << 24),
-						compositeImageType = PSPCompositeImageType.Thumbnail,
-						compressionType = PSPCompression.JPEG,
-						planeCount = 1
-					};
-					JPEGCompositeInfoChunk jpgChunk = new JPEGCompositeInfoChunk()
-					{
-						chunkSize = 14,
-						unCompressedSize = 0,
-						imageType = PSPDIBType.Thumbnail
-					};
-					CompositeImageInfoChunk infoChunk = new CompositeImageInfoChunk()
-					{
-						chunkSize = 8,
-						bitmapCount = 1,
-						channelCount = 3,
-						paletteSubBlock = null
-					};
+					CompositeImageAttributesChunk normAttr = new CompositeImageAttributesChunk(input.Width, input.Height, PSPCompositeImageType.Composite, imageAttributes.CompressionType);
+					CompositeImageAttributesChunk jpgAttr = new CompositeImageAttributesChunk(jpegThumbSize.Width, jpegThumbSize.Height, PSPCompositeImageType.Thumbnail, PSPCompression.JPEG);
+					JPEGCompositeInfoChunk jpgChunk = new JPEGCompositeInfoChunk();
+					CompositeImageInfoChunk infoChunk = new CompositeImageInfoChunk();
 
 					using (RenderArgs args = new RenderArgs(scratchSurface))
 					{
 						input.Render(args, true);
-
 
 						int channelCount = 3;
 						if (LayerHasTransparency(args.Surface, args.Surface.Bounds))
@@ -853,12 +819,7 @@ namespace PaintShopProFiletype
 
 						infoChunk.channelBlocks = SplitImageChannels(args.Surface, args.Surface.Bounds, channelCount, majorVersion, true, callback);
 
-						Size scaleSize = GetThumbnailDimensions(input.Width, input.Height, 200);
-
-						jpgAttr.width = scaleSize.Width;
-						jpgAttr.height = scaleSize.Height;
-
-						using (Surface fit = new Surface(scaleSize))
+						using (Surface fit = new Surface(jpegThumbSize))
 						{
 							fit.FitSurface(ResamplingAlgorithm.SuperSampling, args.Surface);
 
@@ -881,10 +842,8 @@ namespace PaintShopProFiletype
 											ptr++;
 										}
 									}
-
 								}
 							}
-
 
 							using (Bitmap temp = fit.CreateAliasedBitmap(false))
 							{
@@ -897,7 +856,6 @@ namespace PaintShopProFiletype
 								}
 							}
 						}
-
 					}
 
 					this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.Composite);
@@ -912,25 +870,15 @@ namespace PaintShopProFiletype
 				}
 				else
 				{
-					Size scaleSize = GetThumbnailDimensions(input.Width, input.Height, 300);
+					Size thumbSize = GetThumbnailDimensions(input.Width, input.Height, 300);
 
-					this.v5Thumbnail = new ThumbnailBlock()
-					{ 
-						width  = scaleSize.Width,
-						height = scaleSize.Height,
-						bitDepth = 24,
-						compressionType = PSPCompression.LZ77,
-						planeCount = 1,
-						colorCount = (1 << 24),
-						paletteEntryCount = 0,
-						channelCount = 3
-					};
+					this.v5Thumbnail = new ThumbnailBlock(thumbSize.Width, thumbSize.Height);
 
 					scratchSurface.Clear(ColorBgra.White);
 					using (RenderArgs args = new RenderArgs(scratchSurface))
 					{
 						input.Render(args, false);
-						using (Surface fit = new Surface(scaleSize))
+						using (Surface fit = new Surface(thumbSize))
 						{
 							fit.FitSurface(ResamplingAlgorithm.SuperSampling, args.Surface);
 
@@ -939,7 +887,6 @@ namespace PaintShopProFiletype
 							this.v5Thumbnail.channelBlocks = SplitImageChannels(args.Surface, args.Surface.Bounds, 3, majorVersion, true, callback);
 						}
 					}
-
 				}
 
 				int layerCount = input.Layers.Count;                
@@ -953,22 +900,7 @@ namespace PaintShopProFiletype
 
 					Rectangle savedBounds = PSPUtil.GetImageSaveRectangle(layer.Surface);
 
-					LayerInfoChunk infoChunk = new LayerInfoChunk()
-					{
-						fileMajorVersion = majorVersion, // used to determine the version to save as
-						imageRect = layer.Bounds,
-						name = layer.Name,
-						opacity = layer.Opacity,
-						saveRect = savedBounds,
-						type = majorVersion > PSPConstants.majorVersion5 ? PSPLayerType.Raster : 0
-						// the LAYER_TYPE_NORMAL value in PSP 5 and older is 0 
-					};
-					infoChunk.chunkSize = majorVersion > PSPConstants.majorVersion5 ? (uint)(119 + 2 + layer.Name.Length) : 375;
-					infoChunk.blendMode = BlendOptoBlendMode(layer.BlendOp);
-					if (layer.Visible)
-					{
-						infoChunk.layerFlags |= PSPLayerProperties.Visible;
-					}
+					LayerInfoChunk infoChunk = new LayerInfoChunk(layer, BlendOptoBlendMode(layer.BlendOp), savedBounds, majorVersion);
 					layerInfoChunks[i] = infoChunk;
 
 					if (!savedBounds.IsEmpty)
@@ -982,12 +914,7 @@ namespace PaintShopProFiletype
 							bitmapCount = 2;
 						}
 
-						LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk()
-						{
-							chunkSize = 8U,
-							bitmapCount = (ushort)bitmapCount,
-							channelCount = (ushort)channelCount
-						};
+						LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk(bitmapCount, channelCount);
 						biChunk.channels = SplitImageChannels(layer.Surface, savedBounds, channelCount, majorVersion, false, callback);
 
 						if (majorVersion <= PSPConstants.majorVersion5)
