@@ -7,13 +7,30 @@ namespace PaintShopProFiletype.PSPSections
         {
         }
 
+        /// <summary>
+        /// Paint Shop Pro 5
+        /// </summary>
         public const ushort majorVersion5 = 3;
+        /// <summary>
+        /// Paint Shop Pro 6
+        /// </summary>
         public const ushort majorVersion6 = 4;
+        /// <summary>
+        /// Paint Shop Pro 7
+        /// </summary>
         public const ushort majorVersion7 = 5;
+        /// <summary>
+        /// Paint Shop Pro 8
+        /// </summary>
         public const ushort majorVersion8 = 6;
+        /// <summary>
+        /// Paint Shop Pro 9
+        /// </summary>
         public const ushort majorVersion9 = 7;
+        /// <summary>
+        /// Paint Shop Pro 10
+        /// </summary>
         public const ushort majorVersion10 = 8;
-
         /// <summary>
         /// Paint Shop Pro X2
         /// </summary>
