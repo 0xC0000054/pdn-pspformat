@@ -265,8 +265,6 @@ namespace PaintShopProFiletype.PSPSections
 	{
 		private LayerInfoChunk[] layerInfoChunks;
 		private LayerBitmapInfoChunk[] layerBitmapInfo;
-		private GeneralImageAttributes imageAttributes;
-		private ushort fileMajorVersion;
 
 		public LayerInfoChunk[] LayerInfo
 		{
@@ -290,19 +288,11 @@ namespace PaintShopProFiletype.PSPSections
 			this.layerBitmapInfo = biChunks;
 		}
 
-		public LayerBlock(BinaryReader br, GeneralImageAttributes attr, ushort majorVersion)
+		public LayerBlock(BinaryReader br, GeneralImageAttributes imageAttributes, ushort majorVersion)
 		{
-			this.fileMajorVersion = majorVersion;
-			this.imageAttributes = attr;
-
-			this.Load(br);
-		}
-
-		private void Load(BinaryReader br)
-		{
-			RasterLayerInfo raster = CountRasterChunks(br);
+			IList<RasterLayerChunk> raster = CountRasterChunks(br, imageAttributes.LayerCount, majorVersion);
 			
-			int layerCount = raster.count;
+			int layerCount = raster.Count;
 
 			if (layerCount == 0)
 			{
@@ -314,76 +304,22 @@ namespace PaintShopProFiletype.PSPSections
 
 			for (int i = 0; i < layerCount; i++)
 			{
-				br.BaseStream.Seek(raster.infoChunkOffsets[i], SeekOrigin.Begin);
+				RasterLayerChunk chunk = raster[i]; 
+				this.layerInfoChunks[i] = chunk.layerInfo;
 
-				LayerInfoChunk chunk = new LayerInfoChunk(br, fileMajorVersion); 
-				this.layerInfoChunks[i] = chunk;
-
-				if (!chunk.saveRect.IsEmpty)
+				if (!chunk.layerInfo.saveRect.IsEmpty)
 				{
-					if (fileMajorVersion <= PSPConstants.majorVersion5)
+					br.BaseStream.Seek(chunk.bitmapInfoOffset, SeekOrigin.Begin);
+					if (majorVersion <= PSPConstants.majorVersion5)
 					{
-						LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk(br, imageAttributes, chunk.v5BitmapCount, chunk.v5ChannelCount);
-
-						this.layerBitmapInfo[i] = biChunk;
+						this.layerBitmapInfo[i] = new LayerBitmapInfoChunk(br, imageAttributes, chunk.layerInfo.v5BitmapCount, chunk.layerInfo.v5ChannelCount);
 					}
 					else
 					{
-						LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk(br, imageAttributes, fileMajorVersion);
-
-						this.layerBitmapInfo[i] = biChunk;
+						this.layerBitmapInfo[i] = new LayerBitmapInfoChunk(br, imageAttributes, majorVersion);
 					} 
 				} 
 			}
-		}
-
-		private struct RasterLayerInfo
-		{
-			public int count;
-			public long[] infoChunkOffsets;
-		} 
-
-		private RasterLayerInfo CountRasterChunks(BinaryReader reader)
-		{
-			int layerCount = imageAttributes.LayerCount;
-			
-			int rasterCount = 0;
-			List<long> rasterInfoOffsets = new List<long>(layerCount);
-
-			int index = 0;
-			while (index < layerCount)
-			{
-				uint head = reader.ReadUInt32();
-				PSPBlockID blockID = (PSPBlockID)reader.ReadUInt16();
-				uint initialBlockLength = fileMajorVersion <= PSPConstants.majorVersion5 ? reader.ReadUInt32() : 0;
-				uint blockLength = reader.ReadUInt32();
-
-				if (blockID == PSPBlockID.Layer)
-				{
-					index++;
-					long startOffset = reader.BaseStream.Position;
-					long endOffset = startOffset + (long)blockLength;
-
-					LayerInfoChunk chunk = new LayerInfoChunk(reader, fileMajorVersion);
-
-					switch (chunk.type)
-					{
-						case PSPLayerType.Raster:
-						case PSPLayerType.FloatingRasterSelection:
-							rasterCount++;
-							rasterInfoOffsets.Add(startOffset);
-							break;
-					}
-
-					reader.BaseStream.Position += (endOffset - reader.BaseStream.Position);         
-				}
-				else
-				{
-					reader.BaseStream.Position += (long)blockLength;
-				}  
-			}
-
-			return new RasterLayerInfo() { count = rasterCount, infoChunkOffsets = rasterInfoOffsets.ToArray() };
 		}
 
 		public void Save(BinaryWriterEx bw, ushort majorVersion)
@@ -410,7 +346,7 @@ namespace PaintShopProFiletype.PSPSections
 
 					using (new PSPUtil.BlockLengthWriter(bw))
 					{
-						this.layerInfoChunks[i].Save(bw);
+						this.layerInfoChunks[i].Save(bw, majorVersion);
 						if (!layerInfoChunks[i].saveRect.IsEmpty)
 						{
 							this.layerBitmapInfo[i].Save(bw, majorVersion); 
@@ -419,6 +355,57 @@ namespace PaintShopProFiletype.PSPSections
 				} 
 			}
 
+		}
+
+		private sealed class RasterLayerChunk
+		{
+			public readonly LayerInfoChunk layerInfo;
+			public readonly long bitmapInfoOffset;
+
+			public RasterLayerChunk(LayerInfoChunk info, long offset)
+			{
+				this.layerInfo = info;
+				this.bitmapInfoOffset = offset;
+			}
+		}
+
+		private static IList<RasterLayerChunk> CountRasterChunks(BinaryReader reader, int layerCount, ushort majorVersion)
+		{
+			List<RasterLayerChunk> rasterChunks = new List<RasterLayerChunk>(layerCount);
+
+			int index = 0;
+			while (index < layerCount)
+			{
+				uint head = reader.ReadUInt32();
+				PSPBlockID blockID = (PSPBlockID)reader.ReadUInt16();
+				uint initialBlockLength = majorVersion <= PSPConstants.majorVersion5 ? reader.ReadUInt32() : 0;
+				uint blockLength = reader.ReadUInt32();
+
+				if (blockID == PSPBlockID.Layer)
+				{
+					index++;
+					long endOffset = reader.BaseStream.Position + (long)blockLength;
+
+					LayerInfoChunk chunk = new LayerInfoChunk(reader, majorVersion);
+					long currentOffset = reader.BaseStream.Position;
+
+					switch (chunk.type)
+					{
+						case PSPLayerType.Raster:
+						case PSPLayerType.FloatingRasterSelection:
+							rasterChunks.Add(new RasterLayerChunk(chunk, currentOffset));
+							break;
+					}
+
+					reader.BaseStream.Position += (endOffset - currentOffset);
+				}
+				else
+				{
+					reader.BaseStream.Position += (long)blockLength;
+				}
+			}
+
+			return rasterChunks;
 		}
 	}
 }
