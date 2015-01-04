@@ -32,7 +32,7 @@ namespace PaintShopProFiletype.PSPSections
 		}
 
 #if DEBUG		
-		internal ColorPaletteBlock paletteBlock;
+		internal ColorPaletteBlock paletteSubBlock;
 
 		public ThumbnailBlock(BinaryReader br)
 		{
@@ -47,31 +47,30 @@ namespace PaintShopProFiletype.PSPSections
 
 			this.channelBlocks = new ChannelSubBlock[(int)channelCount];
 
-			uint head = 0;
-			ushort blockID = 0;
-			uint initialLength = 0;
-			uint totalLength = 0;
-			if (this.bitDepth < 24 && this.paletteEntryCount > 0)
+			int index = 0;
+			do
 			{
-				head = br.ReadUInt32();
-				blockID = br.ReadUInt16();
-				initialLength = br.ReadUInt32();
-				totalLength = br.ReadUInt32();
+				uint blockSig = br.ReadUInt32();
+				if (blockSig != PSPConstants.blockIdentifier)
+				{
+					throw new System.FormatException(Properties.Resources.InvalidBlockSignature);
+				}
+				PSPBlockID blockType = (PSPBlockID)br.ReadUInt16();
+				uint chunkLength = br.ReadUInt32();
 
-				this.paletteBlock = new ColorPaletteBlock(br, PSPConstants.majorVersion5);
+				switch (blockType)
+				{
+					case PSPBlockID.ColorPalette:
+						this.paletteSubBlock = new ColorPaletteBlock(br, PSPConstants.majorVersion5);
+						break;
+					case PSPBlockID.Channel:
+						ChannelSubBlock block = new ChannelSubBlock(br, this.compressionType, PSPConstants.majorVersion5);
+						channelBlocks[index] = block;
+						index++;
+						break;
+				}
 			}
-
-
-			for (int i = 0; i < channelCount; i++)
-			{
-				head = br.ReadUInt32();
-				blockID = br.ReadUInt16();
-				initialLength = br.ReadUInt32();
-				totalLength = br.ReadUInt32();
-
-				ChannelSubBlock ch = new ChannelSubBlock(br, this.compressionType, PSPConstants.majorVersion5);
-				this.channelBlocks[i] = ch;
-			}
+			while (index < channelCount);
 
 		} 
 #endif
