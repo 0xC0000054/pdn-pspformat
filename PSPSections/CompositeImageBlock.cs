@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace PaintShopProFiletype.PSPSections
@@ -139,9 +140,14 @@ namespace PaintShopProFiletype.PSPSections
 				br.BaseStream.Position += (long)dif;
 			}
 
-			for (int i = 0; i < channelCount; i++)
+			int index = 0;
+			do
 			{
 				uint blockSig = br.ReadUInt32();
+				if (blockSig != PSPConstants.blockIdentifier)
+				{
+					throw new FormatException(Properties.Resources.InvalidBlockSignature);
+				}
 				PSPBlockID blockType = (PSPBlockID)br.ReadUInt16();
 				uint chunkLength = br.ReadUInt32();
 
@@ -149,16 +155,15 @@ namespace PaintShopProFiletype.PSPSections
 				{
 					case PSPBlockID.ColorPalette:
 						this.paletteSubBlock = new ColorPaletteBlock(br, majorVersion);
-						i--; // back up and read the channel
 						break;
 					case PSPBlockID.Channel:
 						ChannelSubBlock block = new ChannelSubBlock(br, attr.compressionType, majorVersion);
-						channelBlocks[i] = block;
+						channelBlocks[index] = block;
+						index++;
 						break;
 				}
 			}
-
-
+			while (index < channelCount);
 		}
 #endif       
 		public CompositeImageInfoChunk()
@@ -230,16 +235,24 @@ namespace PaintShopProFiletype.PSPSections
 			for (int i = 0; i < attrChunkCount; i++)
 			{         
 				uint blockSig = br.ReadUInt32();
+				if (blockSig != PSPConstants.blockIdentifier)
+				{
+					throw new FormatException(Properties.Resources.InvalidBlockSignature);
+				}
 				ushort blockType = br.ReadUInt16();
+				PSPUtil.CheckBlockType(blockType, PSPBlockID.CompositeImageAttributes);
 				uint attrChunkLength = br.ReadUInt32();
 
-				CompositeImageAttributesChunk chunk = new CompositeImageAttributesChunk(br);
-				this.attrChunks[i] = chunk;
+				this.attrChunks[i] = new CompositeImageAttributesChunk(br);
 			}
 
 			for (int i = 0; i < attrChunkCount; i++)
 			{
 				uint blockSig = br.ReadUInt32();
+				if (blockSig != PSPConstants.blockIdentifier)
+				{
+					throw new FormatException(Properties.Resources.InvalidBlockSignature);
+				}
 				PSPBlockID blockType = (PSPBlockID)br.ReadUInt16();
 				uint chunkLength = br.ReadUInt32();
 
@@ -265,7 +278,6 @@ namespace PaintShopProFiletype.PSPSections
 				}
 			} 
 		}
-
 #endif
 
 		/// <summary>
