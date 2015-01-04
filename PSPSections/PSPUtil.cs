@@ -1,4 +1,5 @@
-﻿/////////////////////////////////////////////////////////////////////////////////
+﻿// Portions of this file has been adapted from:
+/////////////////////////////////////////////////////////////////////////////////
 //
 // Photoshop PSD FileType Plugin for Paint.NET
 // http://psdplugin.codeplex.com/
@@ -14,6 +15,7 @@
 
 using System;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using PaintDotNet;
 
@@ -150,5 +152,20 @@ namespace PaintShopProFiletype.PSPSections
             return fPixelFound;
         }
 
+        /// <summary>
+        /// Checks that the block type matches the expected <see cref="PSPBlockID"/>.
+        /// </summary>
+        /// <param name="blockID">The block identifier.</param>
+        /// <param name="expected">The expected <see cref="PSPBlockID"/>.</param>
+        internal static void CheckBlockType(ushort blockID, PSPBlockID expected)
+        {
+            if (blockID != (ushort)expected)
+            {
+                throw new FormatException(string.Format(Properties.Resources.UnexpectedBlockTypeFormat,
+                    blockID.ToString(CultureInfo.InvariantCulture), 
+                    ((ushort)expected).ToString(CultureInfo.InvariantCulture),
+                    expected.ToString()));
+            }
+        }
     }
 }
