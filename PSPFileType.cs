@@ -7,9 +7,10 @@ using PaintShopProFiletype.Properties;
 
 namespace PaintShopProFiletype
 {
+	[PaintDotNet.PluginSupportInfo(typeof(PluginSupportInfo))]
 	public sealed class PaintShopProFormat : PropertyBasedFileType, IFileTypeFactory
 	{
-		public PaintShopProFormat() : base("Paint Shop Pro Format", FileTypeFlags.SupportsLayers | FileTypeFlags.SupportsLoading | FileTypeFlags.SupportsSaving | FileTypeFlags.SavesWithProgress, new string[] {".psp", ".pspimage", ".pspbrush", ".jfr", ".pspframe", ".pspmask",  ".tub", ".psptube" }) 
+		public PaintShopProFormat() : base("Paint Shop Pro", FileTypeFlags.SupportsLayers | FileTypeFlags.SupportsLoading | FileTypeFlags.SupportsSaving | FileTypeFlags.SavesWithProgress, new string[] {".psp", ".pspimage", ".pspbrush", ".jfr", ".pspframe", ".pspmask",  ".tub", ".psptube" }) 
 		{
 		}
 		
@@ -55,7 +56,7 @@ namespace PaintShopProFiletype
 
 			return info;
 		}
-		
+
 
 		private enum PropertyNames
 		{
