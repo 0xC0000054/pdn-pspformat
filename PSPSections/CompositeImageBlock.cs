@@ -217,23 +217,19 @@ namespace PaintShopProFiletype.PSPSections
 #if DEBUG
 		public CompositeImageBlock(BinaryReader br, ushort majorVersion)
 		{
-			this.Load(br, majorVersion);
-		}
-
-		private void Load(BinaryReader br, ushort majorVersion)
-		{
 			this.blockSize = br.ReadUInt32();
 			this.attrChunkCount = br.ReadUInt32();
 
-			if ((this.blockSize - HeaderSize) > 0)
+            long dif = this.blockSize - HeaderSize;
+			if (dif > 0)
 			{
-				br.BaseStream.Position += (long)(this.blockSize - HeaderSize);
+				br.BaseStream.Position += dif;
 			}
 
 			this.attrChunks = new CompositeImageAttributesChunk[(int)this.attrChunkCount];
 
 			for (int i = 0; i < attrChunkCount; i++)
-			{         
+			{
 				uint blockSig = br.ReadUInt32();
 				if (blockSig != PSPConstants.blockIdentifier)
 				{
@@ -276,7 +272,7 @@ namespace PaintShopProFiletype.PSPSections
 						Debug.WriteLine(string.Format("JPEG thumbnail size: {0}x{1}", th.Width, th.Height));
 					}
 				}
-			} 
+			}
 		}
 #endif
 
