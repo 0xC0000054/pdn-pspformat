@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Drawing;
 using System.IO;
+using System.Text;
 
 namespace PaintShopProFiletype.PSPSections
 {
@@ -20,9 +19,9 @@ namespace PaintShopProFiletype.PSPSections
 		public ushort channelCount;
 		public ChannelSubBlock[] channels;
 
-		private const uint HeaderSize = 8U;
+		internal const uint HeaderSize = 8U;
 
-		public LayerBitmapInfoChunk(BinaryReader br, GeneralImageAttributes attr, ushort majorVersion)
+		public LayerBitmapInfoChunk(BinaryReader br, PSPCompression compression, ushort majorVersion)
 		{
 			long startOffset = br.BaseStream.Position;
 
@@ -40,14 +39,19 @@ namespace PaintShopProFiletype.PSPSections
 			for (int i = 0; i < channelCount; i++)
 			{
 				uint head = br.ReadUInt32();
+				if (head != PSPConstants.blockIdentifier)
+				{
+					throw new FormatException(Properties.Resources.InvalidBlockSignature);
+				}
 				ushort blockID = br.ReadUInt16();
+				PSPUtil.CheckBlockType(blockID, PSPBlockID.Channel);
 				uint size = br.ReadUInt32();
 
-				this.channels[i] = new ChannelSubBlock(br, attr.CompressionType, majorVersion);
+				this.channels[i] = new ChannelSubBlock(br, compression, majorVersion);
 			}
 		}
 
-		public LayerBitmapInfoChunk(BinaryReader br, GeneralImageAttributes attr, ushort v5BitmapCount, ushort v5ChannelCount)
+		public LayerBitmapInfoChunk(BinaryReader br, PSPCompression compression, ushort v5BitmapCount, ushort v5ChannelCount)
 		{
 			this.chunkSize = 0;
 			this.bitmapCount = v5BitmapCount;
@@ -57,11 +61,16 @@ namespace PaintShopProFiletype.PSPSections
 			for (int i = 0; i < channelCount; i++)
 			{
 				uint head = br.ReadUInt32();
+				if (head != PSPConstants.blockIdentifier)
+				{
+					throw new FormatException(Properties.Resources.InvalidBlockSignature);
+				}
 				ushort blockID = br.ReadUInt16();
+				PSPUtil.CheckBlockType(blockID, PSPBlockID.Channel);
 				uint initialSize = br.ReadUInt32();
 				uint size = br.ReadUInt32();
 
-				this.channels[i] = new ChannelSubBlock(br, attr.CompressionType, PSPConstants.majorVersion5);
+				this.channels[i] = new ChannelSubBlock(br, compression, PSPConstants.majorVersion5);
 			}
 		}
 
@@ -114,6 +123,12 @@ namespace PaintShopProFiletype.PSPSections
 
 		public byte useHighlightColor;
 		public uint highlightColor;
+
+		internal const uint Version5ChunkLength = 375U;
+		/// <summary>
+		/// The base chunk size of the version 6 header, 119 bytes + 2 for the name length.
+		/// </summary>
+		private const uint Version6BaseChunkSize = 119 + sizeof(ushort);
 
 		public LayerInfoChunk(BinaryReader br, ushort majorVersion)
 		{
@@ -173,7 +188,6 @@ namespace PaintShopProFiletype.PSPSections
 				this.v5ChannelCount = br.ReadUInt16();
 			} 
 
-
 			long dif = this.chunkSize - (br.BaseStream.Position - startOffset);
 			if (dif > 0)
 			{
@@ -183,8 +197,16 @@ namespace PaintShopProFiletype.PSPSections
 
 		public LayerInfoChunk(PaintDotNet.Layer layer, PSPBlendModes blendMode, Rectangle savedBounds, ushort majorVersion)
 		{
-			this.chunkSize = majorVersion > PSPConstants.majorVersion5 ? (uint)(119 + 2 + layer.Name.Length) : 0U;
+			if (majorVersion > PSPConstants.majorVersion5)
+			{
+				this.chunkSize = Version6BaseChunkSize + (uint)Encoding.ASCII.GetByteCount(layer.Name);
+			}
+			else
+			{
+				this.chunkSize = 0U;
+			}
 			this.name = layer.Name;
+			this.type = majorVersion > PSPConstants.majorVersion5 ? PSPLayerType.Raster : 0;
 			this.imageRect = layer.Bounds;
 			this.saveRect = savedBounds;
 			this.opacity = layer.Opacity;
@@ -301,6 +323,7 @@ namespace PaintShopProFiletype.PSPSections
 
 			this.layerInfoChunks = new LayerInfoChunk[layerCount];
 			this.layerBitmapInfo = new LayerBitmapInfoChunk[layerCount];
+			PSPCompression compression = imageAttributes.CompressionType;
 
 			for (int i = 0; i < layerCount; i++)
 			{
@@ -312,11 +335,11 @@ namespace PaintShopProFiletype.PSPSections
 					br.BaseStream.Seek(chunk.bitmapInfoOffset, SeekOrigin.Begin);
 					if (majorVersion <= PSPConstants.majorVersion5)
 					{
-						this.layerBitmapInfo[i] = new LayerBitmapInfoChunk(br, imageAttributes, chunk.layerInfo.v5BitmapCount, chunk.layerInfo.v5ChannelCount);
+						this.layerBitmapInfo[i] = new LayerBitmapInfoChunk(br, compression, chunk.layerInfo.v5BitmapCount, chunk.layerInfo.v5ChannelCount);
 					}
 					else
 					{
-						this.layerBitmapInfo[i] = new LayerBitmapInfoChunk(br, imageAttributes, majorVersion);
+						this.layerBitmapInfo[i] = new LayerBitmapInfoChunk(br, compression, majorVersion);
 					} 
 				} 
 			}
@@ -328,7 +351,7 @@ namespace PaintShopProFiletype.PSPSections
 			bw.Write((ushort)PSPBlockID.LayerStart);
 			if (majorVersion <= PSPConstants.majorVersion5)
 			{
-				bw.Write(0U); // length of first LayerInfoChunk
+				bw.Write(0U); // Initial data chunk length, always 0.
 			}
 			
 			using (new PSPUtil.BlockLengthWriter(bw))
@@ -341,16 +364,13 @@ namespace PaintShopProFiletype.PSPSections
 					bw.Write((ushort)PSPBlockID.Layer);
 					if (majorVersion <= PSPConstants.majorVersion5)
 					{
-						bw.Write(375U); // size of the first layer info chunk
+						bw.Write(LayerInfoChunk.Version5ChunkLength); // Initial data chunk length.
 					}
 
 					using (new PSPUtil.BlockLengthWriter(bw))
 					{
 						this.layerInfoChunks[i].Save(bw, majorVersion);
-						if (!layerInfoChunks[i].saveRect.IsEmpty)
-						{
-							this.layerBitmapInfo[i].Save(bw, majorVersion); 
-						}
+						this.layerBitmapInfo[i].Save(bw, majorVersion); 
 					}
 				} 
 			}
@@ -377,6 +397,10 @@ namespace PaintShopProFiletype.PSPSections
 			while (index < layerCount)
 			{
 				uint head = reader.ReadUInt32();
+				if (head != PSPConstants.blockIdentifier)
+				{
+					throw new FormatException(Properties.Resources.InvalidBlockSignature);
+				}
 				PSPBlockID blockID = (PSPBlockID)reader.ReadUInt16();
 				uint initialBlockLength = majorVersion <= PSPConstants.majorVersion5 ? reader.ReadUInt32() : 0;
 				uint blockLength = reader.ReadUInt32();
@@ -393,6 +417,33 @@ namespace PaintShopProFiletype.PSPSections
 					{
 						case PSPLayerType.Raster:
 						case PSPLayerType.FloatingRasterSelection:
+							if (majorVersion >= PSPConstants.majorVersion12)
+							{
+								// Paint Shop Pro X2 and later insert an unknown block (0x21) before the start of the LayerBitmapInfo chunk.
+								bool ok = false;
+								if (reader.ReadUInt32() == PSPConstants.blockIdentifier)
+								{
+									ushort block = reader.ReadUInt16();
+									uint length = reader.ReadUInt32();
+
+									if (block == 0x21)
+									{
+										reader.BaseStream.Position += (long)length;
+										if (reader.ReadUInt32() == LayerBitmapInfoChunk.HeaderSize)
+										{
+											reader.BaseStream.Position -= 4L;
+											currentOffset = reader.BaseStream.Position;
+											ok = true;
+										}
+									}
+								}
+
+								if (!ok)
+								{
+									throw new FormatException(Properties.Resources.UnsupportedFormatVersion);
+								}
+							}
+
 							rasterChunks.Add(new RasterLayerChunk(chunk, currentOffset));
 							break;
 					}
