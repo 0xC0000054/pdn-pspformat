@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ColorPaletteNotFound" xml:space="preserve">
+    <value>The file does not contain a color palette.</value>
+  </data>
   <data name="CompressionFormatLZ77Text" xml:space="preserve">
     <value>LZ77</value>
   </data>
@@ -132,6 +135,9 @@
   <data name="FileVersionText" xml:space="preserve">
     <value>File Version</value>
   </data>
+  <data name="InvalidBlockSignature" xml:space="preserve">
+    <value>The file contains an invalid block signature.</value>
+  </data>
   <data name="InvalidDocumentDimensions" xml:space="preserve">
     <value>The file width and height must be greater than zero.</value>
   </data>
@@ -144,8 +150,11 @@
   <data name="RasterLayerNotFound" xml:space="preserve">
     <value>The file does not contain any Raster layers.</value>
   </data>
+  <data name="UnexpectedBlockTypeFormat" xml:space="preserve">
+    <value>{0} is not an expected block type, expecting {1} ({2}). </value>
+  </data>
   <data name="UnsupportedBitDepth" xml:space="preserve">
-    <value>{0} is not a supported bit depth.</value>
+    <value>{0}-bit is not a supported image depth.</value>
   </data>
   <data name="UnsupportedFormatVersion" xml:space="preserve">
     <value>The file uses a version of the Paint Shop Pro format that is not supported by this plugin.</value>
