@@ -9,8 +9,6 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -21,7 +19,7 @@ using PaintShopProFiletype.PSPSections;
 
 namespace PaintShopProFiletype
 {
-	class PSPFile
+	internal sealed class PSPFile
 	{
 		private static byte[] PSPFileSig = new byte[32] {0x50, 0x61, 0x69, 0x6E, 0x74, 0x20, 0x53, 0x68, 0x6F, 0x70, 0x20, 0x50, 
 		0x72, 0x6F, 0x20, 0x49, 0x6D, 0x61, 0x67, 0x65, 0x20, 0x46, 0x69, 0x6C, 0x65, 0x0A, 
@@ -37,6 +35,18 @@ namespace PaintShopProFiletype
 		private ThumbnailBlock v5Thumbnail;
 
 		private const string PSPCreatorMetaData = "PSPFormatCreatorData";
+
+		public PSPFile()
+		{
+			this.fileHeader = null;
+			this.imageAttributes = null;
+			this.extData = null;
+			this.creator = null;
+			this.compImage = null;
+			this.globalPalette = null;
+			this.layerBlock = null;
+			this.v5Thumbnail = null;
+		}
 
 		private static string SerializeToBase64(object data)
 		{
@@ -123,47 +133,45 @@ namespace PaintShopProFiletype
 				throw new FormatException(Properties.Resources.InvalidPSPFile);
 			}
 
-			using (BinaryReader br = new BinaryReader(input))
+			using (BinaryReader reader = new BinaryReader(input))
 			{
-				fileHeader = new FileHeader(br);
-
-				if (fileHeader.Major >= PSPConstants.majorVersion12)
-				{
-					throw new FormatException(Properties.Resources.UnsupportedFormatVersion);
-				}
+				this.fileHeader = new FileHeader(reader);
 
 				while (input.Position < input.Length)
 				{
-					uint blockSig = br.ReadUInt32();
-					PSPBlockID blockID = (PSPBlockID)br.ReadUInt16();
-					uint initialBlockLength = fileHeader.Major <= PSPConstants.majorVersion5 ? br.ReadUInt32() : 0;
-					uint blockLength = br.ReadUInt32();
+					uint blockSig = reader.ReadUInt32();
+					if (blockSig != PSPConstants.blockIdentifier)
+					{
+						throw new FormatException(Properties.Resources.InvalidBlockSignature);
+					}
+					PSPBlockID blockID = (PSPBlockID)reader.ReadUInt16();
+					uint initialBlockLength = fileHeader.Major <= PSPConstants.majorVersion5 ? reader.ReadUInt32() : 0;
+					uint blockLength = reader.ReadUInt32();
 
 					switch (blockID)
 					{
 						case PSPBlockID.ImageAttributes:
-							imageAttributes = new GeneralImageAttributes(br, fileHeader.Major);
+							this.imageAttributes = new GeneralImageAttributes(reader, fileHeader.Major);
 							break;
 						case PSPBlockID.Creator:
-							creator = new CreatorBlock(br, blockLength);
+							this.creator = new CreatorBlock(reader, blockLength);
 							break;
 						case PSPBlockID.ColorPalette:
-							globalPalette = new ColorPaletteBlock(br, fileHeader.Major);
+							this.globalPalette = new ColorPaletteBlock(reader, fileHeader.Major);
 							break;
 						case PSPBlockID.LayerStart:
-							this.layerBlock = new LayerBlock(br, imageAttributes, fileHeader.Major);
+							this.layerBlock = new LayerBlock(reader, imageAttributes, fileHeader.Major);
 							break;
 						case PSPBlockID.ExtendedData:
-							extData = new ExtendedDataBlock(br, blockLength);
+							this.extData = new ExtendedDataBlock(reader, blockLength);
 							break;
 #if DEBUG
 						case PSPBlockID.CompositeImageBank:
-							this.compImage = new CompositeImageBlock(br, fileHeader.Major);
+							this.compImage = new CompositeImageBlock(reader, fileHeader.Major);
 							break;
 #endif
 						default:
-
-							br.BaseStream.Position += (long)blockLength;
+							reader.BaseStream.Position += (long)blockLength;
 							break;
 					}
 
@@ -239,61 +247,88 @@ namespace PaintShopProFiletype
 
 		public Document Load(Stream input)
 		{
-			this.LoadPSPFile(input);
+			LoadPSPFile(input);
 
+			if (this.imageAttributes == null || this.layerBlock == null)
+			{
+				throw new FormatException(Properties.Resources.InvalidPSPFile);
+			}
 
-			if (imageAttributes.Width <= 0 || imageAttributes.Height <= 0)
+			if (this.imageAttributes.BitDepth <= 8 && this.globalPalette == null)
+			{
+				throw new FormatException(Properties.Resources.ColorPaletteNotFound);
+			}
+
+			LayerInfoChunk[] infoChunks = this.layerBlock.LayerInfo;
+			int layerCount = infoChunks.Length;
+
+			// Some PSP files may have layers that are larger than the dimensions stored in the image attributes.
+			int maxWidth = this.imageAttributes.Width;
+			int maxHeight = this.imageAttributes.Height;
+
+			for (int i = 0; i < layerCount; i++)
+			{
+				Rectangle savedBounds = infoChunks[i].saveRect;
+				if (savedBounds.Width > maxWidth)
+				{
+					maxWidth = savedBounds.Width;
+				}
+				if (savedBounds.Height > maxHeight)
+				{
+					maxHeight = savedBounds.Height;
+				}
+			}
+
+			if (maxWidth <= 0 || maxHeight <= 0)
 			{
 				throw new FormatException(Properties.Resources.InvalidDocumentDimensions);
 			}
 
-			Document doc = new Document(imageAttributes.Width, imageAttributes.Height);
+			Document doc = new Document(maxWidth, maxHeight);
 
-			if (imageAttributes.ResValue > 0.0)
+			if (this.imageAttributes.ResValue > 0.0)
 			{
-				switch (imageAttributes.ResUnit)
+				switch (this.imageAttributes.ResUnit)
 				{
 					case ResolutionMetric.Inch:                        
 						doc.DpuUnit = MeasurementUnit.Inch;
-						doc.DpuX = doc.DpuY = imageAttributes.ResValue;
+						doc.DpuX = doc.DpuY = this.imageAttributes.ResValue;
 						break;
 					case ResolutionMetric.Centimeter:
 						doc.DpuUnit = MeasurementUnit.Centimeter;
-						doc.DpuX = doc.DpuY = imageAttributes.ResValue;
+						doc.DpuX = doc.DpuY = this.imageAttributes.ResValue;
 						break;
 					default:
 						break;
 				}
 			}
 			
-			int layerCount = layerBlock.LayerInfo.Length;
-			LayerInfoChunk[] infoChunks = layerBlock.LayerInfo;
-			LayerBitmapInfoChunk[] bitmapInfoChunks =  layerBlock.LayerBitmapInfo;
+			LayerBitmapInfoChunk[] bitmapInfoChunks =  this.layerBlock.LayerBitmapInfo;
 
 			for (int i = 0; i < layerCount; i++)
 			{
 				LayerInfoChunk info = infoChunks[i];
-				LayerBitmapInfoChunk bitmapInfo = bitmapInfoChunks[i];
 
-				if (info.imageRect.Width <= 0 || info.imageRect.Height <= 0)
-				{
-					continue;
-				}
+				BitmapLayer layer = new BitmapLayer(doc.Width, doc.Height) { Name = info.name, Opacity = info.opacity };
+				UserBlendOp blendOp = BlendModetoBlendOp(info.blendMode);
+				layer.SetBlendOp(blendOp);
+				layer.Visible = (info.layerFlags & PSPLayerProperties.Visible) == PSPLayerProperties.Visible;
 
-				if (info.type == PSPLayerType.Raster || info.type == PSPLayerType.FloatingRasterSelection)
-				{
-					BitmapLayer layer = new BitmapLayer(info.imageRect.Width, info.imageRect.Height) { Name = info.name, Opacity = info.opacity };
-					UserBlendOp blendOp = BlendModetoBlendOp(info.blendMode);
-					layer.SetBlendOp(blendOp);
-					layer.Visible = (info.layerFlags & PSPLayerProperties.Visible) == PSPLayerProperties.Visible;
+				Rectangle saveRect = info.saveRect;
 
-					Rectangle saveRect = info.saveRect;
+				if (!saveRect.IsEmpty)
+				{ 				
+					LayerBitmapInfoChunk bitmapInfo = bitmapInfoChunks[i];
 
 					short transIndex = -1;
 
-					if (imageAttributes.BitDepth < 24 && extData.Values.ContainsKey(PSPExtendedDataID.TransparencyIndex))
+					if (this.imageAttributes.BitDepth < 24 && this.extData != null)
 					{
-						transIndex = BitConverter.ToInt16(extData.Values[PSPExtendedDataID.TransparencyIndex], 0);
+						byte[] data;
+						if (this.extData.Values.TryGetValue(PSPExtendedDataID.TransparencyIndex, out data))
+						{
+							transIndex = BitConverter.ToInt16(data, 0);
+						}
 					}
 
 					if (bitmapInfo.bitmapCount == 1)
@@ -303,13 +338,13 @@ namespace PaintShopProFiletype
 					
 					int alphaIndex = 0;
 
-					int bitDepth = imageAttributes.BitDepth;                    
+					int bitDepth = this.imageAttributes.BitDepth;                    
 
 					int bytesPerPixel = 1;
 					int stride = saveRect.Width;
 					byte[] expandedPalette = null;
 
-					switch (imageAttributes.BitDepth)
+					switch (bitDepth)
 					{
 						case 48:
 							bytesPerPixel = 2;
@@ -318,8 +353,6 @@ namespace PaintShopProFiletype
 						case 4:
 						case 1:
 							expandedPalette = ExpandPackedPalette(saveRect, bitmapInfo, bitDepth);
-							break;
-						default:
 							break;
 					}
 
@@ -345,11 +378,11 @@ namespace PaintShopProFiletype
 										{
 											ChannelSubBlock ch = bitmapInfo.channels[ci];
 
-											ushort col = (ushort)(ch.channelData[index] | (ch.channelData[index + 1] << 8)); // PSP format is always little endian 
-											byte clamped = (byte)((col * 255) / 65535);
-
 											if (ch.bitmapType == PSPDIBType.Image)
-											{
+											{											
+												ushort col = (ushort)(ch.channelData[index] | (ch.channelData[index + 1] << 8)); // PSP format is always little endian 
+												byte clamped = (byte)((col * 255) / 65535);
+
 												switch (ch.channelType)
 												{
 													case PSPChannelType.Red:
@@ -361,15 +394,13 @@ namespace PaintShopProFiletype
 													case PSPChannelType.Blue:
 														ptr->B = clamped;
 														break;
-												} 
+												}
 											}
 											else if (ch.bitmapType == PSPDIBType.TransparencyMask)
 											{
-												ptr->A = ch.channelData[alphaIndex];										
+												ptr->A = ch.channelData[alphaIndex];
 												alphaIndex++;
 											}
-
-
 										}
 
 										break;
@@ -398,7 +429,6 @@ namespace PaintShopProFiletype
 											{
 												ptr->A = ch.channelData[index];
 											}
-
 										}
 
 										break;
@@ -434,7 +464,7 @@ namespace PaintShopProFiletype
 
 										palIdx = expandedPalette[index];
 										entry = this.globalPalette.entries[palIdx];
-										
+
 										ptr->R = entry.rgbRed;
 										ptr->G = entry.rgbGreen;
 										ptr->B = entry.rgbBlue;
@@ -457,24 +487,21 @@ namespace PaintShopProFiletype
 								ptr++;
 								index += bytesPerPixel;
 							}
-						} 
+						}
 					}
-
-#if DEBUG
-					using (Bitmap temp = layer.Surface.CreateAliasedBitmap())
-					{
-
-					} 
-#endif
-					
-					doc.Layers.Add(layer);
 				}
-			   
+					
+#if DEBUG
+				using (Bitmap temp = layer.Surface.CreateAliasedBitmap())
+				{
+				} 
+#endif
+				doc.Layers.Add(layer);
 			}
 
 			string creatorData = SerializeToBase64(this.creator);
 			doc.Metadata.SetUserValue(PSPCreatorMetaData, creatorData);
-		
+
 			return doc;
 		}
 
@@ -678,7 +705,7 @@ namespace PaintShopProFiletype
 			return channels;
 		}
 
-		public static Size GetThumbnailDimensions(int originalWidth, int originalHeight, int maxEdgeLength)
+		private static Size GetThumbnailDimensions(int originalWidth, int originalHeight, int maxEdgeLength)
 		{
 			Size thumbSize = Size.Empty;
 			
@@ -732,7 +759,6 @@ namespace PaintShopProFiletype
 
 		public void Save(Document input, Stream output, CompressionFormats format, Surface scratchSurface, ushort majorVersion, ProgressEventHandler callback)
 		{
-
 			if (majorVersion == PSPConstants.majorVersion5 && input.Layers.Count > 64)
 			{
 				throw new FormatException(string.Format(Properties.Resources.MaxLayersFormat, 64));
@@ -901,31 +927,27 @@ namespace PaintShopProFiletype
 					Rectangle savedBounds = PSPUtil.GetImageSaveRectangle(layer.Surface);
 
 					LayerInfoChunk infoChunk = new LayerInfoChunk(layer, BlendOptoBlendMode(layer.BlendOp), savedBounds, majorVersion);
-					layerInfoChunks[i] = infoChunk;
 
-					if (!savedBounds.IsEmpty)
+					int channelCount = 3;
+					int bitmapCount = 1;
+
+					if (LayerHasTransparency(layer.Surface, savedBounds))
 					{
-						int channelCount = 3;
-						int bitmapCount = 1;
-
-						if (LayerHasTransparency(layer.Surface, savedBounds))
-						{
-							channelCount = 4;
-							bitmapCount = 2;
-						}
-
-						LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk(bitmapCount, channelCount);
-						biChunk.channels = SplitImageChannels(layer.Surface, savedBounds, channelCount, majorVersion, false, callback);
-
-						if (majorVersion <= PSPConstants.majorVersion5)
-						{
-							infoChunk.v5BitmapCount = biChunk.bitmapCount;
-							infoChunk.v5ChannelCount = biChunk.channelCount;
-						} 		
-						
-						layerBitmapChunks[i] = biChunk;
+						channelCount = 4;
+						bitmapCount = 2;
 					}
+					
+					LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk(bitmapCount, channelCount);
+					biChunk.channels = SplitImageChannels(layer.Surface, savedBounds, channelCount, majorVersion, false, callback);
 
+					if (majorVersion <= PSPConstants.majorVersion5)
+					{
+						infoChunk.v5BitmapCount = biChunk.bitmapCount;
+						infoChunk.v5ChannelCount = biChunk.channelCount;
+					} 		
+					
+					layerInfoChunks[i] = infoChunk;
+					layerBitmapChunks[i] = biChunk;
 				}
 
 				this.layerBlock = new LayerBlock(layerInfoChunks, layerBitmapChunks);
