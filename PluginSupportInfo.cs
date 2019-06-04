@@ -19,23 +19,23 @@ namespace PaintShopProFiletype
     {
         public string Author
         {
-            get 
-            { 
+            get
+            {
                 return "null54";
             }
         }
 
         public string Copyright
         {
-            get 
-            { 
+            get
+            {
                 return ((AssemblyCopyrightAttribute)typeof(PaintShopProFormat).Assembly.GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false)[0]).Copyright;
             }
         }
 
         public string DisplayName
         {
-            get 
+            get
             {
                 return "Paint Shop Pro Filetype";
             }

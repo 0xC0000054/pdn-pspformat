@@ -50,11 +50,11 @@ namespace PaintShopProFiletype.PSPSections
 		}
 		public double ResValue
 		{
-			get 
+			get
 			{
 				return resValue;
 			}
-			set 
+			set
 			{
 				resValue = value;
 			}
@@ -74,14 +74,14 @@ namespace PaintShopProFiletype.PSPSections
 
 		public PSPCompression CompressionType
 		{
-			get 
+			get
 			{
 				return compressionType;
 			}
 		}
 
 		public ushort BitDepth
-		{ 
+		{
 			get
 			{
 				return bitDepth;
@@ -164,14 +164,14 @@ namespace PaintShopProFiletype.PSPSections
 			bw.Write((ushort)PSPBlockID.ImageAttributes);
 			if (this.fileMajorVersion > PSPConstants.majorVersion5)
 			{
-				bw.Write(Version6HeaderSize); // total size                
+				bw.Write(Version6HeaderSize); // total size
 				bw.Write(this.chunkSize); // total size
 			}
 			else
 			{
 				bw.Write(Version5HeaderSize); // initial size
 				bw.Write(Version5HeaderSize); // total size
-			}       
+			}
 			bw.Write(this.width);
 			bw.Write(this.height);
 			bw.Write(this.resValue);

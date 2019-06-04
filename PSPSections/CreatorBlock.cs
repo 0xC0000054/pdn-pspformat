@@ -34,11 +34,11 @@ namespace PaintShopProFiletype.PSPSections
 		/// <summary>
 		/// Gets the current date and time in Unix format (the number of seconds from 1/1/1970)
 		/// </summary>
-		/// <returns>The current date and time in Unix format</returns> 
+		/// <returns>The current date and time in Unix format</returns>
 		private static uint GetCurrentUnixTimestamp()
 		{
 			TimeSpan t = (DateTime.Now - UnixEpochLocal);
-			
+
 			return (uint)t.TotalSeconds;
 		}
 
@@ -52,7 +52,7 @@ namespace PaintShopProFiletype.PSPSections
 		}
 
 		public DateTime ModDate
-		{ 
+		{
 			get
 			{
 				return UnixEpochLocal.AddSeconds(modDate);
@@ -109,7 +109,7 @@ namespace PaintShopProFiletype.PSPSections
 						break;
 					default:
 						break;
-				} 
+				}
 			}
 		}
 
@@ -119,7 +119,7 @@ namespace PaintShopProFiletype.PSPSections
 			writer.Write((ushort)field);
 
 			byte[] bytes = Encoding.ASCII.GetBytes(value);
-			
+
 			writer.Write((uint)bytes.Length);
 			writer.Write(bytes);
 		}
@@ -143,7 +143,7 @@ namespace PaintShopProFiletype.PSPSections
 					writer.Write(sizeof(uint));
 					writer.Write(this.createDate);
 				}
-				
+
 				writer.Write(PSPConstants.fieldIdentifier);
 				writer.Write((ushort)PSPCreatorFieldID.ModifiedDate);
 				writer.Write(sizeof(uint));
@@ -164,7 +164,7 @@ namespace PaintShopProFiletype.PSPSections
 					WriteASCIIField(writer, PSPCreatorFieldID.Description, this.description);
 				}
 			}
-			
+
 		}
 	}
 }

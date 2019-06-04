@@ -20,7 +20,7 @@ namespace PaintShopProFiletype.PSPSections
 
         public ushort Major
         {
-            get 
+            get
             {
                 return this.majorVersion;
             }
@@ -38,11 +38,11 @@ namespace PaintShopProFiletype.PSPSections
         {
             this.majorVersion = major;
             this.minorVersion = 0;
-        }  
+        }
 
 
         public FileHeader(BinaryReader br)
-        {           
+        {
             this.majorVersion = br.ReadUInt16();
             this.minorVersion = br.ReadUInt16();
         }

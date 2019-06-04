@@ -32,15 +32,15 @@ namespace PaintShopProFiletype
 {
 	internal sealed class PSPFile
 	{
-		private static byte[] PSPFileSig = new byte[32] {0x50, 0x61, 0x69, 0x6E, 0x74, 0x20, 0x53, 0x68, 0x6F, 0x70, 0x20, 0x50, 
-		0x72, 0x6F, 0x20, 0x49, 0x6D, 0x61, 0x67, 0x65, 0x20, 0x46, 0x69, 0x6C, 0x65, 0x0A, 
+		private static byte[] PSPFileSig = new byte[32] {0x50, 0x61, 0x69, 0x6E, 0x74, 0x20, 0x53, 0x68, 0x6F, 0x70, 0x20, 0x50,
+		0x72, 0x6F, 0x20, 0x49, 0x6D, 0x61, 0x67, 0x65, 0x20, 0x46, 0x69, 0x6C, 0x65, 0x0A,
 		0x1A, 0x00, 0x00, 0x00, 0x00, 0x00}; // "Paint Shop Pro Image File\n\x1a” padded to 32 bytes
 
 		private FileHeader fileHeader;
 		private GeneralImageAttributes imageAttributes;
 		private ExtendedDataBlock extData;
 		private CreatorBlock creator;
-		private CompositeImageBlock compImage;        
+		private CompositeImageBlock compImage;
 		private ColorPaletteBlock globalPalette;
 		private LayerBlock layerBlock;
 		private ThumbnailBlock v5Thumbnail;
@@ -70,7 +70,7 @@ namespace PaintShopProFiletype
 		}
 
 		/// <summary>
-		/// Binds the serialization to types in the currently loaded assembly. 
+		/// Binds the serialization to types in the currently loaded assembly.
 		/// </summary>
 		private class SelfBinder : System.Runtime.Serialization.SerializationBinder
 		{
@@ -94,7 +94,7 @@ namespace PaintShopProFiletype
 		private static bool CheckSig(byte[] sig)
 		{
 			// Some writers may not write zeros for the signature padding, so we only check the first 27 bytes of the signature.
-			
+
 			for (int i = 0; i < 27; i++)
 			{
 				if (sig[i] != PSPFileSig[i])
@@ -113,21 +113,21 @@ namespace PaintShopProFiletype
 				case PSPBlendModes.Normal:
 					return new UserBlendOps.NormalBlendOp();
 				case PSPBlendModes.Darken:
-					return new UserBlendOps.DarkenBlendOp(); 
+					return new UserBlendOps.DarkenBlendOp();
 				case PSPBlendModes.Lighten:
-					return new UserBlendOps.LightenBlendOp(); 
+					return new UserBlendOps.LightenBlendOp();
 				case PSPBlendModes.Multiply:
-					return new UserBlendOps.MultiplyBlendOp(); 
+					return new UserBlendOps.MultiplyBlendOp();
 				case PSPBlendModes.Screen:
-					return new UserBlendOps.ScreenBlendOp(); 
+					return new UserBlendOps.ScreenBlendOp();
 				case PSPBlendModes.Overlay:
-					return new UserBlendOps.OverlayBlendOp(); 
+					return new UserBlendOps.OverlayBlendOp();
 				case PSPBlendModes.Difference:
-					return new UserBlendOps.DifferenceBlendOp(); 
+					return new UserBlendOps.DifferenceBlendOp();
 				case PSPBlendModes.Dodge:
-					return new UserBlendOps.ColorDodgeBlendOp(); 
+					return new UserBlendOps.ColorDodgeBlendOp();
 				case PSPBlendModes.Burn:
-					return new UserBlendOps.ColorBurnBlendOp(); 
+					return new UserBlendOps.ColorBurnBlendOp();
 				default:
 					return new UserBlendOps.NormalBlendOp();
 			}
@@ -195,12 +195,12 @@ namespace PaintShopProFiletype
 			int height = saveRect.Height;
 			int width = saveRect.Width;
 			byte[] image = new byte[width * height];
- 
+
 			int bpp, shift;
 
 			switch (bitDepth)
 			{
-				case 4:		
+				case 4:
 					bpp = 2;
 					shift = 1;
 					break;
@@ -231,19 +231,19 @@ namespace PaintShopProFiletype
 
 								if ((x & 1) == 1) // odd column
 								{
-									*dst = (byte)(data & 0x0f); 
+									*dst = (byte)(data & 0x0f);
 								}
 								else
 								{
-									*dst = (byte)(data >> 4); 
+									*dst = (byte)(data >> 4);
 								}
-							   
+
 								break;
 							case 1:
 
 								int mask = x & 7;
-								// extract the palette bit for the current pixel. 
-								*dst = (byte)((data & (128 >> mask)) >> (7 - mask)); 
+								// extract the palette bit for the current pixel.
+								*dst = (byte)((data & (128 >> mask)) >> (7 - mask));
 								break;
 
 						}
@@ -301,7 +301,7 @@ namespace PaintShopProFiletype
 			{
 				switch (this.imageAttributes.ResUnit)
 				{
-					case ResolutionMetric.Inch:                        
+					case ResolutionMetric.Inch:
 						doc.DpuUnit = MeasurementUnit.Inch;
 						doc.DpuX = doc.DpuY = this.imageAttributes.ResValue;
 						break;
@@ -313,7 +313,7 @@ namespace PaintShopProFiletype
 						break;
 				}
 			}
-			
+
 			LayerBitmapInfoChunk[] bitmapInfoChunks =  this.layerBlock.LayerBitmapInfo;
 
 			for (int i = 0; i < layerCount; i++)
@@ -328,7 +328,7 @@ namespace PaintShopProFiletype
 				Rectangle saveRect = info.saveRect;
 
 				if (!saveRect.IsEmpty)
-				{ 				
+				{
 					LayerBitmapInfoChunk bitmapInfo = bitmapInfoChunks[i];
 
 					short transIndex = -1;
@@ -346,10 +346,10 @@ namespace PaintShopProFiletype
 					{
 						new UnaryPixelOps.SetAlphaChannelTo255().Apply(layer.Surface, saveRect);
 					}
-					
+
 					int alphaIndex = 0;
 
-					int bitDepth = this.imageAttributes.BitDepth;                    
+					int bitDepth = this.imageAttributes.BitDepth;
 
 					int bytesPerPixel = 1;
 					int stride = saveRect.Width;
@@ -390,8 +390,8 @@ namespace PaintShopProFiletype
 											ChannelSubBlock ch = bitmapInfo.channels[ci];
 
 											if (ch.bitmapType == PSPDIBType.Image)
-											{											
-												ushort col = (ushort)(ch.channelData[index] | (ch.channelData[index + 1] << 8)); // PSP format is always little endian 
+											{
+												ushort col = (ushort)(ch.channelData[index] | (ch.channelData[index + 1] << 8)); // PSP format is always little endian
 												byte clamped = (byte)((col * 255) / 65535);
 
 												switch (ch.channelType)
@@ -501,11 +501,11 @@ namespace PaintShopProFiletype
 						}
 					}
 				}
-					
+
 #if DEBUG
 				using (Bitmap temp = layer.Surface.CreateAliasedBitmap())
 				{
-				} 
+				}
 #endif
 				doc.Layers.Add(layer);
 			}
@@ -555,7 +555,7 @@ namespace PaintShopProFiletype
 			else if (opType == typeof(UserBlendOps.ScreenBlendOp))
 			{
 				return PSPBlendModes.Screen;
-			} 
+			}
 
 			return PSPBlendModes.Normal;
 		}
@@ -579,7 +579,7 @@ namespace PaintShopProFiletype
 		private unsafe ChannelSubBlock[] SplitImageChannels(Surface source, Rectangle savedBounds, int channelCount, ushort majorVersion, bool composite, ProgressEventHandler callback)
 		{
 			ChannelSubBlock[] channels = new ChannelSubBlock[channelCount];
-			
+
 			int channelSize = savedBounds.Width * savedBounds.Height;
 
 			for (int i = 0; i < channelCount; i++)
@@ -592,7 +592,7 @@ namespace PaintShopProFiletype
 						case PSPConstants.majorVersion5:
 							channels[i].bitmapType = PSPDIBType.Thumbnail;
 							break;
-						default:					
+						default:
 							channels[i].bitmapType = i < 3 ? PSPDIBType.Composite : PSPDIBType.CompositeTransparencyMask;
 							break;
 					}
@@ -602,7 +602,7 @@ namespace PaintShopProFiletype
 				{
 					channels[i].bitmapType = i < 3 ? PSPDIBType.Image : PSPDIBType.TransparencyMask;
 				}
-				
+
 				switch (i)
 				{
 					case 0:
@@ -611,7 +611,7 @@ namespace PaintShopProFiletype
 					case 1:
 						channels[i].channelType = PSPChannelType.Green;
 						break;
-					case 2: 
+					case 2:
 						channels[i].channelType = PSPChannelType.Blue;
 						break;
 					case 3:
@@ -710,7 +710,7 @@ namespace PaintShopProFiletype
 					channels[channelIndex].compressedChannelLength = (uint)compBuffer.Length;
 					channels[channelIndex].channelData = compBuffer;
 
-				} 
+				}
 			}
 
 			return channels;
@@ -719,7 +719,7 @@ namespace PaintShopProFiletype
 		private static Size GetThumbnailDimensions(int originalWidth, int originalHeight, int maxEdgeLength)
 		{
 			Size thumbSize = Size.Empty;
-			
+
 			if (originalWidth <= 0 || originalHeight <= 0)
 			{
 				thumbSize.Width = 1;
@@ -737,7 +737,7 @@ namespace PaintShopProFiletype
 				thumbSize.Width = Math.Max(1, (originalWidth * longSide) / originalHeight);
 				thumbSize.Height= longSide;
 			}
-			else 
+			else
 			{
 				int longSide = Math.Min(originalWidth, maxEdgeLength);
 				thumbSize.Width = longSide;
@@ -815,11 +815,11 @@ namespace PaintShopProFiletype
 						else
 						{
 							totalProgress += 3;
-						} 
+						}
 					}
 
 				}
-				
+
 				if (flatImage)
 				{
 					this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.FlatImage);
@@ -849,7 +849,7 @@ namespace PaintShopProFiletype
 						using (Bitmap bmp = args.Surface.CreateAliasedBitmap())
 						{
 
-						} 
+						}
 #endif
 
 						this.totalProgress += channelCount;
@@ -873,7 +873,7 @@ namespace PaintShopProFiletype
 										{
 											if (ptr->A == 0)
 											{
-												ptr->Bgra |= 0x00ffffff; // set the color of the transparent pixels to white, same as Paint Shop Pro  
+												ptr->Bgra |= 0x00ffffff; // set the color of the transparent pixels to white, same as Paint Shop Pro
 											}
 
 											ptr++;
@@ -926,8 +926,8 @@ namespace PaintShopProFiletype
 					}
 				}
 
-				int layerCount = input.Layers.Count;                
-		   
+				int layerCount = input.Layers.Count;
+
 				LayerInfoChunk[] layerInfoChunks = new LayerInfoChunk[layerCount];
 				LayerBitmapInfoChunk[] layerBitmapChunks = new LayerBitmapInfoChunk[layerCount];
 
@@ -947,7 +947,7 @@ namespace PaintShopProFiletype
 						channelCount = 4;
 						bitmapCount = 2;
 					}
-					
+
 					LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk(bitmapCount, channelCount);
 					biChunk.channels = SplitImageChannels(layer.Surface, savedBounds, channelCount, majorVersion, false, callback);
 
@@ -955,8 +955,8 @@ namespace PaintShopProFiletype
 					{
 						infoChunk.v5BitmapCount = biChunk.bitmapCount;
 						infoChunk.v5ChannelCount = biChunk.channelCount;
-					} 		
-					
+					}
+
 					layerInfoChunks[i] = infoChunk;
 					layerBitmapChunks[i] = biChunk;
 				}

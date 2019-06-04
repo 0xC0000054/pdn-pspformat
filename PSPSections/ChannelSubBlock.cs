@@ -34,7 +34,7 @@ namespace PaintShopProFiletype.PSPSections
 			this.bitmapType = (PSPDIBType)br.ReadUInt16();
 			this.channelType = (PSPChannelType)br.ReadUInt16();
 			this.channelData = null;
-  
+
 			long dif = chunkSize - Version6HeaderSize;
 			if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
 			{
@@ -64,7 +64,7 @@ namespace PaintShopProFiletype.PSPSections
 						codec.InitializeInflate();
 
 						int status = codec.Inflate(FlushType.Finish);
-						
+
 						codec.EndInflate();
 
 						if (status != ZlibConstants.Z_OK && status != ZlibConstants.Z_STREAM_END)
@@ -73,7 +73,7 @@ namespace PaintShopProFiletype.PSPSections
 						}
 
 						break;
-				} 
+				}
 			}
 		}
 
@@ -93,14 +93,14 @@ namespace PaintShopProFiletype.PSPSections
 			bw.Write((ushort)PSPBlockID.Channel);
 			if (majorVersion > PSPConstants.majorVersion5)
 			{
-				bw.Write(Version6HeaderSize + this.compressedChannelLength);            
+				bw.Write(Version6HeaderSize + this.compressedChannelLength);
 				bw.Write(this.chunkSize);
 			}
 			else
 			{
 				bw.Write(Version5HeaderSize); // initial size
 				bw.Write(Version5HeaderSize + this.compressedChannelLength);
-			}                
+			}
 			bw.Write(this.compressedChannelLength);
 			bw.Write(this.uncompressedChannelLength);
 			bw.Write((ushort)this.bitmapType);

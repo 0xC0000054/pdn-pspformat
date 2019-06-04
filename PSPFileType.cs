@@ -21,10 +21,10 @@ namespace PaintShopProFiletype
 	[PaintDotNet.PluginSupportInfo(typeof(PluginSupportInfo))]
 	public sealed class PaintShopProFormat : PropertyBasedFileType, IFileTypeFactory
 	{
-		public PaintShopProFormat() : base("Paint Shop Pro", FileTypeFlags.SupportsLayers | FileTypeFlags.SupportsLoading | FileTypeFlags.SupportsSaving | FileTypeFlags.SavesWithProgress, new string[] {".psp", ".pspimage", ".pspbrush", ".jfr", ".pspframe", ".pspmask",  ".tub", ".psptube" }) 
+		public PaintShopProFormat() : base("Paint Shop Pro", FileTypeFlags.SupportsLayers | FileTypeFlags.SupportsLoading | FileTypeFlags.SupportsSaving | FileTypeFlags.SavesWithProgress, new string[] {".psp", ".pspimage", ".pspbrush", ".jfr", ".pspframe", ".pspmask",  ".tub", ".psptube" })
 		{
 		}
-		
+
 		public FileType[] GetFileTypeInstances()
 		{
 			return new FileType[] { new PaintShopProFormat() };
@@ -43,10 +43,10 @@ namespace PaintShopProFiletype
 
 		public override PropertyCollection OnCreateSavePropertyCollection()
 		{
-			List<Property> properties = new List<Property>() 
-			{   
+			List<Property> properties = new List<Property>()
+			{
 				StaticListChoiceProperty.CreateForEnum<FileVersion>(PropertyNames.FileVersion, FileVersion.Version6, false),
-				StaticListChoiceProperty.CreateForEnum<CompressionFormats>(PropertyNames.CompressionType, CompressionFormats.LZ77, false) 
+				StaticListChoiceProperty.CreateForEnum<CompressionFormats>(PropertyNames.CompressionType, CompressionFormats.LZ77, false)
 			};
 
 			return new PropertyCollection(properties);

@@ -91,7 +91,7 @@ namespace PaintShopProFiletype.PSPSections
         LZ77, // LZ77 compression
         JPEG // JPEG compression (only used by thumbnail and composite image)
     };
-    
+
     /* Layer types.
     */
     enum PSPLayerType

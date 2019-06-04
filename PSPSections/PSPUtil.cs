@@ -56,7 +56,7 @@ namespace PaintShopProFiletype.PSPSections
                 {
                     long end = writer.BaseStream.Position;
                     long sectionLength = end - startPos;
-                    
+
                     writer.BaseStream.Position = lengthPos;
                     writer.Write((uint)sectionLength);
 
@@ -146,7 +146,7 @@ namespace PaintShopProFiletype.PSPSections
             {
                 if (pixel->A > 0)
                 {
-                    // Expand the rectangle to include the specified point.  
+                    // Expand the rectangle to include the specified point.
                     if (x < rectPos.Left)
                         rectPos.Left = x;
                     if (x > rectPos.Right)
@@ -173,7 +173,7 @@ namespace PaintShopProFiletype.PSPSections
             if (blockID != (ushort)expected)
             {
                 throw new FormatException(string.Format(Properties.Resources.UnexpectedBlockTypeFormat,
-                    blockID.ToString(CultureInfo.InvariantCulture), 
+                    blockID.ToString(CultureInfo.InvariantCulture),
                     ((ushort)expected).ToString(CultureInfo.InvariantCulture),
                     expected.ToString()));
             }

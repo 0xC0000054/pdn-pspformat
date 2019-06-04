@@ -34,8 +34,8 @@ namespace PaintShopProFiletype.PSPSections
                 this.entries[i].rgbGreen = br.ReadByte();
                 this.entries[i].rgbRed = br.ReadByte();
                 this.entries[i].rgbReserved = br.ReadByte();
-            } 
-            
+            }
+
             uint dif = chunkSize - HeaderSize;
             if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
             {
@@ -44,5 +44,5 @@ namespace PaintShopProFiletype.PSPSections
         }
 
     }
-    
+
 }

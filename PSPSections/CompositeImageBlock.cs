@@ -19,7 +19,7 @@ namespace PaintShopProFiletype.PSPSections
 	{
 		public uint chunkSize;
 		public int width;
-		public int height;  
+		public int height;
 		public ushort bitDepth;
 		public PSPCompression compressionType; // ushort
 		public ushort planeCount;
@@ -46,7 +46,7 @@ namespace PaintShopProFiletype.PSPSections
 				br.BaseStream.Position += (long)dif;
 			}
 
-		} 
+		}
 #endif
 		public CompositeImageAttributesChunk(int width, int height, PSPCompositeImageType imageType, PSPCompression compression)
 		{
@@ -102,7 +102,7 @@ namespace PaintShopProFiletype.PSPSections
 			}
 
 			this.imageData = br.ReadBytes((int)this.compressedSize);
-		} 
+		}
 #endif
 		public JPEGCompositeInfoChunk()
 		{
@@ -176,7 +176,7 @@ namespace PaintShopProFiletype.PSPSections
 			}
 			while (index < channelCount);
 		}
-#endif       
+#endif
 		public CompositeImageInfoChunk()
 		{
 			this.chunkSize = HeaderSize;
@@ -200,10 +200,10 @@ namespace PaintShopProFiletype.PSPSections
 				for (int i = 0; i < this.channelCount; i++)
 				{
 					this.channelBlocks[i].Save(writer, majorVersion);
-				} 
+				}
 			}
 		}
-	   
+
 	}
 
 	class CompositeImageBlock
@@ -295,7 +295,7 @@ namespace PaintShopProFiletype.PSPSections
 		{
 			bw.Write(PSPConstants.blockIdentifier);
 			bw.Write((ushort)PSPBlockID.CompositeImageBank);
-			
+
 			using (new PSPUtil.BlockLengthWriter(bw))
 			{
 				bw.Write(this.blockSize);
@@ -307,7 +307,7 @@ namespace PaintShopProFiletype.PSPSections
 				}
 
 				this.jpegChunk.Save(bw);
-				this.imageChunk.Save(bw, PSPConstants.majorVersion6); 
+				this.imageChunk.Save(bw, PSPConstants.majorVersion6);
 			}
 		}
 

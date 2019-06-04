@@ -144,12 +144,12 @@ namespace PaintShopProFiletype.PSPSections
 		public LayerInfoChunk(BinaryReader br, ushort majorVersion)
 		{
 			long startOffset = br.BaseStream.Position;
-		   
+
 			if (majorVersion > PSPConstants.majorVersion5)
 			{
 				this.chunkSize = br.ReadUInt32();
 				ushort nameLen = br.ReadUInt16();
-				this.name = Encoding.ASCII.GetString(br.ReadBytes(nameLen)); 
+				this.name = Encoding.ASCII.GetString(br.ReadBytes(nameLen));
 			}
 			else
 			{
@@ -183,7 +183,7 @@ namespace PaintShopProFiletype.PSPSections
 				blendRanges[i] = new BlendRange();
 				blendRanges[i].sourceRange = br.ReadUInt32();
 				blendRanges[i].destRange = br.ReadUInt32();
-			}    
+			}
 			this.v5BitmapCount = 0;
 			this.v5ChannelCount = 0;
 			this.useHighlightColor = 0;
@@ -197,7 +197,7 @@ namespace PaintShopProFiletype.PSPSections
 			{
 				this.v5BitmapCount = br.ReadUInt16();
 				this.v5ChannelCount = br.ReadUInt16();
-			} 
+			}
 
 			long dif = this.chunkSize - (br.BaseStream.Position - startOffset);
 			if (dif > 0)
@@ -244,7 +244,7 @@ namespace PaintShopProFiletype.PSPSections
 		public void Save(BinaryWriterEx bw, ushort majorVersion)
 		{
 			if (majorVersion > PSPConstants.majorVersion5)
-			{           
+			{
 				bw.Write(this.chunkSize);
 				byte[] nameBytes = Encoding.ASCII.GetBytes(this.name);
 				bw.Write((ushort)nameBytes.Length);
@@ -308,7 +308,7 @@ namespace PaintShopProFiletype.PSPSections
 		}
 
 		public LayerBitmapInfoChunk[] LayerBitmapInfo
-		{ 
+		{
 			get
 			{
 				return layerBitmapInfo;
@@ -324,7 +324,7 @@ namespace PaintShopProFiletype.PSPSections
 		public LayerBlock(BinaryReader br, GeneralImageAttributes imageAttributes, ushort majorVersion)
 		{
 			IList<RasterLayerChunk> raster = CountRasterChunks(br, imageAttributes.LayerCount, majorVersion);
-			
+
 			int layerCount = raster.Count;
 
 			if (layerCount == 0)
@@ -338,7 +338,7 @@ namespace PaintShopProFiletype.PSPSections
 
 			for (int i = 0; i < layerCount; i++)
 			{
-				RasterLayerChunk chunk = raster[i]; 
+				RasterLayerChunk chunk = raster[i];
 				this.layerInfoChunks[i] = chunk.layerInfo;
 
 				if (!chunk.layerInfo.saveRect.IsEmpty)
@@ -351,8 +351,8 @@ namespace PaintShopProFiletype.PSPSections
 					else
 					{
 						this.layerBitmapInfo[i] = new LayerBitmapInfoChunk(br, compression, majorVersion);
-					} 
-				} 
+					}
+				}
 			}
 		}
 
@@ -364,7 +364,7 @@ namespace PaintShopProFiletype.PSPSections
 			{
 				bw.Write(0U); // Initial data chunk length, always 0.
 			}
-			
+
 			using (new PSPUtil.BlockLengthWriter(bw))
 			{
 				int count = this.layerBitmapInfo.Length;
@@ -381,9 +381,9 @@ namespace PaintShopProFiletype.PSPSections
 					using (new PSPUtil.BlockLengthWriter(bw))
 					{
 						this.layerInfoChunks[i].Save(bw, majorVersion);
-						this.layerBitmapInfo[i].Save(bw, majorVersion); 
+						this.layerBitmapInfo[i].Save(bw, majorVersion);
 					}
-				} 
+				}
 			}
 
 		}

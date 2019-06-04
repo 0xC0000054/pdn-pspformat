@@ -42,7 +42,7 @@ namespace PaintShopProFiletype.PSPSections
 			this.channelCount = 3;
 		}
 
-#if DEBUG		
+#if DEBUG
 		internal ColorPaletteBlock paletteSubBlock;
 
 		public ThumbnailBlock(BinaryReader br)
@@ -83,7 +83,7 @@ namespace PaintShopProFiletype.PSPSections
 			}
 			while (index < channelCount);
 
-		} 
+		}
 #endif
 
 		public void Save(BinaryWriterEx bw)
