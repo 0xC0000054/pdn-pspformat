@@ -17,7 +17,7 @@ using System.Text;
 
 namespace PaintShopProFiletype.PSPSections
 {
-	struct BlendRange
+    internal struct BlendRange
 	{
 		public uint sourceRange;
 		public uint destRange;

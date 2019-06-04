@@ -17,7 +17,7 @@ using System.IO;
 
 namespace PaintShopProFiletype.PSPSections
 {
-	class GeneralImageAttributes
+    internal class GeneralImageAttributes
 	{
 		private uint chunkSize;
 		private int width;

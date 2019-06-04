@@ -14,7 +14,7 @@ using System.IO;
 
 namespace PaintShopProFiletype.PSPSections
 {
-    class ExtendedDataBlock
+    internal class ExtendedDataBlock
     {
         private uint blockLength;
         private Dictionary<PSPExtendedDataID, byte[]> values;

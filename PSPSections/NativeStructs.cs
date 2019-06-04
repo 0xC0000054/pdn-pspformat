@@ -11,7 +11,7 @@
 
 namespace PaintShopProFiletype
 {
-    static class NativeStructs
+    internal static class NativeStructs
     {
         [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)]
         internal struct RGBQUAD

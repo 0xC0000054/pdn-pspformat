@@ -16,7 +16,7 @@ using System.Text;
 
 namespace PaintShopProFiletype
 {
-    enum FileVersion
+    internal enum FileVersion
     {
         Version5 = 3,
         Version6,

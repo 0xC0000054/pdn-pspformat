@@ -32,7 +32,7 @@ using PaintDotNet;
 
 namespace PaintShopProFiletype.PSPSections
 {
-    static class PSPUtil
+    internal static class PSPUtil
     {
         internal class BlockLengthWriter : IDisposable
         {

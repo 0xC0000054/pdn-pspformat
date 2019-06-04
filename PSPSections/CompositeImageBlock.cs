@@ -206,7 +206,7 @@ namespace PaintShopProFiletype.PSPSections
 
 	}
 
-	class CompositeImageBlock
+    internal class CompositeImageBlock
 	{
 		private uint blockSize;
 		private uint attrChunkCount;

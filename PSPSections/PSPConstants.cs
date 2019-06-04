@@ -11,7 +11,7 @@
 
 namespace PaintShopProFiletype.PSPSections
 {
-    class PSPConstants
+    internal class PSPConstants
     {
         private PSPConstants()
         {

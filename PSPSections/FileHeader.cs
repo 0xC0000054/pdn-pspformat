@@ -13,7 +13,7 @@ using System.IO;
 
 namespace PaintShopProFiletype.PSPSections
 {
-    class FileHeader
+    internal class FileHeader
     {
         private ushort majorVersion;
         private ushort minorVersion;

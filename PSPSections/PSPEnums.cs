@@ -17,7 +17,7 @@ namespace PaintShopProFiletype.PSPSections
 {
     /* Block identifiers.
     */
-    enum PSPBlockID
+    internal enum PSPBlockID
     {
         ImageAttributes = 0, // General Image Attributes Block (main)
         Creator, // Creator Data Block (main)
@@ -50,7 +50,7 @@ namespace PaintShopProFiletype.PSPSections
 
     /* Bitmap types.
     */
-    enum PSPDIBType
+    internal enum PSPDIBType
     {
         Image = 0, // Layer color bitmap
         TransparencyMask, // Layer transparency mask bitmap
@@ -66,25 +66,28 @@ namespace PaintShopProFiletype.PSPSections
         Pattern, // Pattern bitmap
         PatternTransparencyMask, // Pattern transparency mask
     };
+
     /* Type of image in the composite image bank block.
     */
-    enum PSPCompositeImageType
+    internal enum PSPCompositeImageType
     {
         Composite = 0, // Composite Image
         Thumbnail, // Thumbnail Image
     };
+
     /* Channel types.
     */
-    enum PSPChannelType
+    internal enum PSPChannelType
     {
         Composite = 0, // Channel of single channel bitmap
         Red, // Red channel of 24-bit bitmap
         Green, // Green channel of 24-bit bitmap
         Blue, // Blue channel of 24-bit bitmap
     };
+
     /* Possible types of compression.
     */
-    enum PSPCompression
+    internal enum PSPCompression
     {
         None = 0, // No compression
         RLE, // RLE compression
@@ -94,7 +97,7 @@ namespace PaintShopProFiletype.PSPSections
 
     /* Layer types.
     */
-    enum PSPLayerType
+    internal enum PSPLayerType
     {
         Undefined = 0, // Undefined layer type
         Raster, // Standard raster layer
@@ -106,7 +109,7 @@ namespace PaintShopProFiletype.PSPSections
     /* Layer flags.
     */
     [Flags]
-    enum PSPLayerProperties
+    internal enum PSPLayerProperties
     {
         None = 0,
         Visible = 1, // Layer is visible
@@ -115,7 +118,7 @@ namespace PaintShopProFiletype.PSPSections
 
     /* Blend modes.
     */
-    enum PSPBlendModes
+    internal enum PSPBlendModes
     {
         Normal,
         Darken,
@@ -143,7 +146,7 @@ namespace PaintShopProFiletype.PSPSections
 
     /* Possible metrics used to measure resolution.
     */
-    enum ResolutionMetric
+    internal enum ResolutionMetric
     {
         Undefined = 0, // Metric unknown
         Inch, // Resolution is in inches
@@ -152,14 +155,15 @@ namespace PaintShopProFiletype.PSPSections
 
     /* Creator application identifiers.
     */
-    enum PSPCreatorAppID
+    internal enum PSPCreatorAppID
     {
         Unknown = 0, // Creator application unknown
         PaintShopPro, // Creator is Paint Shop Pro
     }
+
     /* Creator field types.
     */
-    enum PSPCreatorFieldID
+    internal enum PSPCreatorFieldID
     {
         Title = 0, // Image document title field
         CreateDate, // Creation date field
@@ -170,17 +174,19 @@ namespace PaintShopProFiletype.PSPSections
         ApplicationID, // Creating app id field
         ApplicationVersion, // Creating app version field
     }
+
     /* Extended data field types.
     */
-    enum PSPExtendedDataID
+    internal enum PSPExtendedDataID
     {
         TransparencyIndex = 0, // Transparency index field
         Grid, // Image grid information
         Guide, // Image guide information
     }
+
     /* Grid units type.
     */
-    enum PSPGridUnitsType
+    internal enum PSPGridUnitsType
     {
         Pixels = 0, // Grid units is pixels
         Inches, // Grid units is inches
@@ -190,7 +196,7 @@ namespace PaintShopProFiletype.PSPSections
     /* Graphic contents flags.
     */
     [Flags]
-    enum PSPGraphicContents : uint
+    internal enum PSPGraphicContents : uint
     {
         // Layer types
         RasterLayers = 0x00000001, // At least one raster layer
