@@ -16,9 +16,9 @@ using System.Text;
 
 namespace PaintShopProFiletype
 {
-	internal enum CompressionFormats
-	{
-		None,
-		LZ77
-	}
+    internal enum CompressionFormats
+    {
+        None,
+        LZ77
+    }
 }
