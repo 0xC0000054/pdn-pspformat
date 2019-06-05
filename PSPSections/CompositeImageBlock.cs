@@ -40,7 +40,7 @@ namespace PaintShopProFiletype.PSPSections
             this.colorCount = br.ReadUInt32();
             this.compositeImageType = (PSPCompositeImageType)br.ReadUInt16();
 
-            uint dif = chunkSize - HeaderSize;
+            uint dif = this.chunkSize - HeaderSize;
             if (dif > 0)
             {
                 br.BaseStream.Position += (long)dif;
@@ -72,7 +72,7 @@ namespace PaintShopProFiletype.PSPSections
             bw.Write((ushort)this.compressionType);
             bw.Write(this.planeCount);
             bw.Write(this.colorCount);
-            bw.Write((ushort)compositeImageType);
+            bw.Write((ushort)this.compositeImageType);
         }
     }
 
@@ -95,7 +95,7 @@ namespace PaintShopProFiletype.PSPSections
             this.unCompressedSize = br.ReadUInt32();
             this.imageType = (PSPDIBType)br.ReadUInt16();
 
-            uint dif = chunkSize - HeaderSize;
+            uint dif = this.chunkSize - HeaderSize;
             if (dif > 0)
             {
                 br.BaseStream.Position += (long)dif;
@@ -143,9 +143,9 @@ namespace PaintShopProFiletype.PSPSections
             this.bitmapCount = br.ReadUInt16();
             this.channelCount = br.ReadUInt16();
             this.paletteSubBlock = null;
-            this.channelBlocks = new ChannelSubBlock[channelCount];
+            this.channelBlocks = new ChannelSubBlock[this.channelCount];
 
-            uint dif = chunkSize - HeaderSize;
+            uint dif = this.chunkSize - HeaderSize;
             if (dif > 0)
             {
                 br.BaseStream.Position += (long)dif;
@@ -169,12 +169,12 @@ namespace PaintShopProFiletype.PSPSections
                         break;
                     case PSPBlockID.Channel:
                         ChannelSubBlock block = new ChannelSubBlock(br, attr.compressionType, majorVersion);
-                        channelBlocks[index] = block;
+                        this.channelBlocks[index] = block;
                         index++;
                         break;
                 }
             }
-            while (index < channelCount);
+            while (index < this.channelCount);
         }
 #endif
         public CompositeImageInfoChunk()
@@ -239,7 +239,7 @@ namespace PaintShopProFiletype.PSPSections
 
             this.attrChunks = new CompositeImageAttributesChunk[(int)this.attrChunkCount];
 
-            for (int i = 0; i < attrChunkCount; i++)
+            for (int i = 0; i < this.attrChunkCount; i++)
             {
                 uint blockSig = br.ReadUInt32();
                 if (blockSig != PSPConstants.blockIdentifier)
@@ -253,7 +253,7 @@ namespace PaintShopProFiletype.PSPSections
                 this.attrChunks[i] = new CompositeImageAttributesChunk(br);
             }
 
-            for (int i = 0; i < attrChunkCount; i++)
+            for (int i = 0; i < this.attrChunkCount; i++)
             {
                 uint blockSig = br.ReadUInt32();
                 if (blockSig != PSPConstants.blockIdentifier)
@@ -301,7 +301,7 @@ namespace PaintShopProFiletype.PSPSections
                 bw.Write(this.blockSize);
                 bw.Write(this.attrChunkCount);
 
-                foreach (var item in attrChunks)
+                foreach (var item in this.attrChunks)
                 {
                     item.Save(bw);
                 }

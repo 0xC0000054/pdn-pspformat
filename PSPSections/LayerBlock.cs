@@ -39,7 +39,7 @@ namespace PaintShopProFiletype.PSPSections
             this.chunkSize = br.ReadUInt32();
             this.bitmapCount = br.ReadUInt16();
             this.channelCount = br.ReadUInt16();
-            this.channels = new ChannelSubBlock[channelCount];
+            this.channels = new ChannelSubBlock[this.channelCount];
 
             long dif = this.chunkSize - (br.BaseStream.Position - startOffset);
             if (dif > 0L)
@@ -47,7 +47,7 @@ namespace PaintShopProFiletype.PSPSections
                 br.BaseStream.Position += dif;
             }
 
-            for (int i = 0; i < channelCount; i++)
+            for (int i = 0; i < this.channelCount; i++)
             {
                 uint head = br.ReadUInt32();
                 if (head != PSPConstants.blockIdentifier)
@@ -67,9 +67,9 @@ namespace PaintShopProFiletype.PSPSections
             this.chunkSize = 0;
             this.bitmapCount = v5BitmapCount;
             this.channelCount = v5ChannelCount;
-            this.channels = new ChannelSubBlock[channelCount];
+            this.channels = new ChannelSubBlock[this.channelCount];
 
-            for (int i = 0; i < channelCount; i++)
+            for (int i = 0; i < this.channelCount; i++)
             {
                 uint head = br.ReadUInt32();
                 if (head != PSPConstants.blockIdentifier)
@@ -180,9 +180,9 @@ namespace PaintShopProFiletype.PSPSections
             this.blendRanges = new BlendRange[5];
             for (int i = 0; i < 5; i++)
             {
-                blendRanges[i] = new BlendRange();
-                blendRanges[i].sourceRange = br.ReadUInt32();
-                blendRanges[i].destRange = br.ReadUInt32();
+                this.blendRanges[i] = new BlendRange();
+                this.blendRanges[i].sourceRange = br.ReadUInt32();
+                this.blendRanges[i].destRange = br.ReadUInt32();
             }
             this.v5BitmapCount = 0;
             this.v5ChannelCount = 0;
@@ -253,15 +253,15 @@ namespace PaintShopProFiletype.PSPSections
             else
             {
                 byte[] nameBytes = new byte[256];
-                if (name.Length > 255)
+                if (this.name.Length > 255)
                 {
-                    byte[] temp = Encoding.ASCII.GetBytes(name.Substring(0, 255));
+                    byte[] temp = Encoding.ASCII.GetBytes(this.name.Substring(0, 255));
                     Buffer.BlockCopy(temp, 0, nameBytes, 0, 255);
                     nameBytes[255] = 0;
                 }
                 else
                 {
-                    byte[] temp = Encoding.ASCII.GetBytes(name + "\0");
+                    byte[] temp = Encoding.ASCII.GetBytes(this.name + "\0");
                     Buffer.BlockCopy(temp, 0, nameBytes, 0, temp.Length);
                 }
 
@@ -303,7 +303,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             get
             {
-                return layerInfoChunks;
+                return this.layerInfoChunks;
             }
         }
 
@@ -311,7 +311,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             get
             {
-                return layerBitmapInfo;
+                return this.layerBitmapInfo;
             }
         }
 

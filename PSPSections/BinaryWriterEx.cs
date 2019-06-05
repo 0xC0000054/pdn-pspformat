@@ -23,7 +23,7 @@ namespace PaintShopProFiletype.PSPSections
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && ownStream)
+            if (disposing && this.ownStream)
             {
                 base.OutStream.Dispose();
             }
@@ -31,10 +31,10 @@ namespace PaintShopProFiletype.PSPSections
 
         public void Write(System.Drawing.Rectangle rect)
         {
-            this.Write(rect.Left);
-            this.Write(rect.Top);
-            this.Write(rect.Right);
-            this.Write(rect.Bottom);
+            Write(rect.Left);
+            Write(rect.Top);
+            Write(rect.Right);
+            Write(rect.Bottom);
         }
     }
 }

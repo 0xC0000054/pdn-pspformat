@@ -35,30 +35,30 @@ namespace PaintShopProFiletype.PSPSections
             this.channelType = (PSPChannelType)br.ReadUInt16();
             this.channelData = null;
 
-            long dif = chunkSize - Version6HeaderSize;
+            long dif = this.chunkSize - Version6HeaderSize;
             if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
             {
                 br.BaseStream.Position += dif;
             }
 
-            if (compressedChannelLength > 0U)
+            if (this.compressedChannelLength > 0U)
             {
                 switch (compression)
                 {
                     case PSPCompression.None:
-                        this.channelData = br.ReadBytes((int)compressedChannelLength);
+                        this.channelData = br.ReadBytes((int)this.compressedChannelLength);
                         break;
                     case PSPCompression.RLE:
-                        this.channelData = RLE.Decompress(br.ReadBytes((int)compressedChannelLength), uncompressedChannelLength);
+                        this.channelData = RLE.Decompress(br.ReadBytes((int)this.compressedChannelLength), this.uncompressedChannelLength);
                         break;
                     case PSPCompression.LZ77:
 
-                        byte[] compressedData = br.ReadBytes((int)compressedChannelLength);
-                        this.channelData = new byte[uncompressedChannelLength];
+                        byte[] compressedData = br.ReadBytes((int)this.compressedChannelLength);
+                        this.channelData = new byte[this.uncompressedChannelLength];
 
                         ZlibCodec codec = new ZlibCodec();
-                        codec.AvailableBytesIn = (int)compressedChannelLength;
-                        codec.AvailableBytesOut = (int)uncompressedChannelLength;
+                        codec.AvailableBytesIn = (int)this.compressedChannelLength;
+                        codec.AvailableBytesOut = (int)this.uncompressedChannelLength;
                         codec.InputBuffer = compressedData;
                         codec.OutputBuffer = this.channelData;
                         codec.InitializeInflate();
@@ -106,7 +106,7 @@ namespace PaintShopProFiletype.PSPSections
             bw.Write((ushort)this.bitmapType);
             bw.Write((ushort)this.channelType);
 
-            if (channelData != null)
+            if (this.channelData != null)
             {
                 bw.Write(this.channelData);
             }

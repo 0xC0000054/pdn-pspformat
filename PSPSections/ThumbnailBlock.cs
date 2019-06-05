@@ -56,7 +56,7 @@ namespace PaintShopProFiletype.PSPSections
             this.paletteEntryCount = br.ReadUInt32();
             this.channelCount = br.ReadUInt16();
 
-            this.channelBlocks = new ChannelSubBlock[(int)channelCount];
+            this.channelBlocks = new ChannelSubBlock[(int)this.channelCount];
 
             int index = 0;
             do
@@ -76,12 +76,12 @@ namespace PaintShopProFiletype.PSPSections
                         break;
                     case PSPBlockID.Channel:
                         ChannelSubBlock block = new ChannelSubBlock(br, this.compressionType, PSPConstants.majorVersion5);
-                        channelBlocks[index] = block;
+                        this.channelBlocks[index] = block;
                         index++;
                         break;
                 }
             }
-            while (index < channelCount);
+            while (index < this.channelCount);
 
         }
 #endif
@@ -103,7 +103,7 @@ namespace PaintShopProFiletype.PSPSections
                 bw.Write(this.paletteEntryCount);
                 bw.Write(this.channelCount);
 
-                for (int i = 0; i < channelCount; i++)
+                for (int i = 0; i < this.channelCount; i++)
                 {
                     this.channelBlocks[i].Save(bw, PSPConstants.majorVersion5);
                 }

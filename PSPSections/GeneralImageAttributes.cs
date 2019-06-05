@@ -38,25 +38,25 @@ namespace PaintShopProFiletype.PSPSections
         {
             get
             {
-                return width;
+                return this.width;
             }
         }
         public int Height
         {
             get
             {
-                return height;
+                return this.height;
             }
         }
         public double ResValue
         {
             get
             {
-                return resValue;
+                return this.resValue;
             }
             set
             {
-                resValue = value;
+                this.resValue = value;
             }
         }
 
@@ -64,11 +64,11 @@ namespace PaintShopProFiletype.PSPSections
         {
             get
             {
-                return resUnits;
+                return this.resUnits;
             }
             set
             {
-                resUnits = value;
+                this.resUnits = value;
             }
         }
 
@@ -76,7 +76,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             get
             {
-                return compressionType;
+                return this.compressionType;
             }
         }
 
@@ -84,7 +84,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             get
             {
-                return bitDepth;
+                return this.bitDepth;
             }
         }
 
@@ -92,7 +92,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             get
             {
-                return layerCount;
+                return this.layerCount;
             }
         }
 
@@ -120,7 +120,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             this.fileMajorVersion = majorVersion;
 
-            this.Load(br);
+            Load(br);
         }
 
         private void Load(BinaryReader br)
@@ -141,7 +141,7 @@ namespace PaintShopProFiletype.PSPSections
             this.activeLayer = br.ReadInt32();
             this.layerCount = br.ReadUInt16();
 
-            if (fileMajorVersion > PSPConstants.majorVersion5)
+            if (this.fileMajorVersion > PSPConstants.majorVersion5)
             {
                 this.graphicContents = (PSPGraphicContents)br.ReadUInt32();
             }
@@ -150,9 +150,9 @@ namespace PaintShopProFiletype.PSPSections
                 this.graphicContents = (PSPGraphicContents)0U;
             }
 
-            long dif = chunkSize - dataSize;
+            long dif = this.chunkSize - dataSize;
 
-            if (dif > 0 && fileMajorVersion > PSPConstants.majorVersion5) // skip any unknown chunks
+            if (dif > 0 && this.fileMajorVersion > PSPConstants.majorVersion5) // skip any unknown chunks
             {
                 br.BaseStream.Position += dif;
             }

@@ -23,7 +23,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             get
             {
-                return values;
+                return this.values;
             }
         }
 
@@ -31,14 +31,14 @@ namespace PaintShopProFiletype.PSPSections
         {
             this.blockLength = blockLength;
             this.values = new Dictionary<PSPExtendedDataID, byte[]>();
-            this.Load(br);
+            Load(br);
         }
 
         private void Load(BinaryReader br)
         {
             long startOffset = br.BaseStream.Position;
 
-            long endOffset = startOffset + (long)blockLength;
+            long endOffset = startOffset + (long)this.blockLength;
 
             while ((br.BaseStream.Position < endOffset) && br.ReadUInt32() == PSPConstants.fieldIdentifier)
             {
@@ -47,7 +47,7 @@ namespace PaintShopProFiletype.PSPSections
                 uint fieldLength = br.ReadUInt32();
 
                 byte[] data = br.ReadBytes((int)fieldLength);
-                values.Add(fieldID, data);
+                this.values.Add(fieldID, data);
             }
 
             long dif = this.blockLength - (br.BaseStream.Position - startOffset);

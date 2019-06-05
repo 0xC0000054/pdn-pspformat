@@ -47,7 +47,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             get
             {
-                return UnixEpochLocal.AddSeconds(createDate);
+                return UnixEpochLocal.AddSeconds(this.createDate);
             }
         }
 
@@ -55,7 +55,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             get
             {
-                return UnixEpochLocal.AddSeconds(modDate);
+                return UnixEpochLocal.AddSeconds(this.modDate);
             }
         }
 #endif
@@ -131,12 +131,12 @@ namespace PaintShopProFiletype.PSPSections
 
             using (new PSPUtil.BlockLengthWriter(writer))
             {
-                if (!string.IsNullOrEmpty(title))
+                if (!string.IsNullOrEmpty(this.title))
                 {
                     WriteASCIIField(writer, PSPCreatorFieldID.Title, this.title);
                 }
 
-                if (createDate != 0U)
+                if (this.createDate != 0U)
                 {
                     writer.Write(PSPConstants.fieldIdentifier);
                     writer.Write((ushort)PSPCreatorFieldID.CreateDate);
@@ -149,17 +149,17 @@ namespace PaintShopProFiletype.PSPSections
                 writer.Write(sizeof(uint));
                 writer.Write(GetCurrentUnixTimestamp());
 
-                if (!string.IsNullOrEmpty(artist))
+                if (!string.IsNullOrEmpty(this.artist))
                 {
                     WriteASCIIField(writer, PSPCreatorFieldID.Artist, this.artist);
                 }
 
-                if (!string.IsNullOrEmpty(copyRight))
+                if (!string.IsNullOrEmpty(this.copyRight))
                 {
                     WriteASCIIField(writer, PSPCreatorFieldID.Copyright, this.copyRight);
                 }
 
-                if (!string.IsNullOrEmpty(description))
+                if (!string.IsNullOrEmpty(this.description))
                 {
                     WriteASCIIField(writer, PSPCreatorFieldID.Description, this.description);
                 }

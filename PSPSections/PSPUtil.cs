@@ -44,25 +44,25 @@ namespace PaintShopProFiletype.PSPSections
             public BlockLengthWriter(BinaryWriter binaryWriter)
             {
                 this.writer = binaryWriter;
-                this.lengthPos = writer.BaseStream.Position;
+                this.lengthPos = this.writer.BaseStream.Position;
                 this.writer.Write(0xBADF00DU);
-                this.startPos = writer.BaseStream.Position;
+                this.startPos = this.writer.BaseStream.Position;
                 this.disposed = false;
             }
 
             public void Dispose()
             {
-                if (!disposed)
+                if (!this.disposed)
                 {
-                    long end = writer.BaseStream.Position;
-                    long sectionLength = end - startPos;
+                    long end = this.writer.BaseStream.Position;
+                    long sectionLength = end - this.startPos;
 
-                    writer.BaseStream.Position = lengthPos;
-                    writer.Write((uint)sectionLength);
+                    this.writer.BaseStream.Position = this.lengthPos;
+                    this.writer.Write((uint)sectionLength);
 
-                    writer.BaseStream.Position = end;
+                    this.writer.BaseStream.Position = end;
 
-                    disposed = true;
+                    this.disposed = true;
                 }
             }
         }

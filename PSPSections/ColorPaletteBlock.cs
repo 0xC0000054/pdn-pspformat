@@ -27,8 +27,8 @@ namespace PaintShopProFiletype.PSPSections
             this.chunkSize = majorVersion > PSPConstants.majorVersion5 ?  br.ReadUInt32() : 0;
             this.entriesCount = br.ReadUInt32();
 
-            this.entries = new NativeStructs.RGBQUAD[entriesCount];
-            for (int i = 0; i < entriesCount; i++)
+            this.entries = new NativeStructs.RGBQUAD[this.entriesCount];
+            for (int i = 0; i < this.entriesCount; i++)
             {
                 this.entries[i].rgbBlue = br.ReadByte();
                 this.entries[i].rgbGreen = br.ReadByte();
@@ -36,7 +36,7 @@ namespace PaintShopProFiletype.PSPSections
                 this.entries[i].rgbReserved = br.ReadByte();
             }
 
-            uint dif = chunkSize - HeaderSize;
+            uint dif = this.chunkSize - HeaderSize;
             if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
             {
                 br.BaseStream.Position += (long)dif;

@@ -156,29 +156,29 @@ namespace PaintShopProFiletype
                         throw new FormatException(Properties.Resources.InvalidBlockSignature);
                     }
                     PSPBlockID blockID = (PSPBlockID)reader.ReadUInt16();
-                    uint initialBlockLength = fileHeader.Major <= PSPConstants.majorVersion5 ? reader.ReadUInt32() : 0;
+                    uint initialBlockLength = this.fileHeader.Major <= PSPConstants.majorVersion5 ? reader.ReadUInt32() : 0;
                     uint blockLength = reader.ReadUInt32();
 
                     switch (blockID)
                     {
                         case PSPBlockID.ImageAttributes:
-                            this.imageAttributes = new GeneralImageAttributes(reader, fileHeader.Major);
+                            this.imageAttributes = new GeneralImageAttributes(reader, this.fileHeader.Major);
                             break;
                         case PSPBlockID.Creator:
                             this.creator = new CreatorBlock(reader, blockLength);
                             break;
                         case PSPBlockID.ColorPalette:
-                            this.globalPalette = new ColorPaletteBlock(reader, fileHeader.Major);
+                            this.globalPalette = new ColorPaletteBlock(reader, this.fileHeader.Major);
                             break;
                         case PSPBlockID.LayerStart:
-                            this.layerBlock = new LayerBlock(reader, imageAttributes, fileHeader.Major);
+                            this.layerBlock = new LayerBlock(reader, this.imageAttributes, this.fileHeader.Major);
                             break;
                         case PSPBlockID.ExtendedData:
                             this.extData = new ExtendedDataBlock(reader, blockLength);
                             break;
 #if DEBUG
                         case PSPBlockID.CompositeImageBank:
-                            this.compImage = new CompositeImageBlock(reader, fileHeader.Major);
+                            this.compImage = new CompositeImageBlock(reader, this.fileHeader.Major);
                             break;
 #endif
                         default:
@@ -668,7 +668,7 @@ namespace PaintShopProFiletype
 
                     byte[] compBuffer = null;
 
-                    switch (imageAttributes.CompressionType)
+                    switch (this.imageAttributes.CompressionType)
                     {
                         case PSPCompression.None:
                             compBuffer = inData;
@@ -702,9 +702,9 @@ namespace PaintShopProFiletype
 
                     if (callback != null)
                     {
-                        doneProgress++;
+                        this.doneProgress++;
 
-                        callback(this, new ProgressEventArgs(100.0 * ((double)doneProgress / (double)totalProgress)));
+                        callback(this, new ProgressEventArgs(100.0 * ((double)this.doneProgress / (double)this.totalProgress)));
                     }
 
                     channels[channelIndex].compressedChannelLength = (uint)compBuffer.Length;
@@ -809,12 +809,12 @@ namespace PaintShopProFiletype
                     {
                         if (LayerHasTransparency(layer.Surface, rect))
                         {
-                            totalProgress += 4;
+                            this.totalProgress += 4;
                             flatImage = false;
                         }
                         else
                         {
-                            totalProgress += 3;
+                            this.totalProgress += 3;
                         }
                     }
 
@@ -829,7 +829,7 @@ namespace PaintShopProFiletype
                 {
                     Size jpegThumbSize = GetThumbnailDimensions(input.Width, input.Height, 200);
 
-                    CompositeImageAttributesChunk normAttr = new CompositeImageAttributesChunk(input.Width, input.Height, PSPCompositeImageType.Composite, imageAttributes.CompressionType);
+                    CompositeImageAttributesChunk normAttr = new CompositeImageAttributesChunk(input.Width, input.Height, PSPCompositeImageType.Composite, this.imageAttributes.CompressionType);
                     CompositeImageAttributesChunk jpgAttr = new CompositeImageAttributesChunk(jpegThumbSize.Width, jpegThumbSize.Height, PSPCompositeImageType.Thumbnail, PSPCompression.JPEG);
                     JPEGCompositeInfoChunk jpgChunk = new JPEGCompositeInfoChunk();
                     CompositeImageInfoChunk infoChunk = new CompositeImageInfoChunk();
