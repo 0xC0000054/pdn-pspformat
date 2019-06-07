@@ -64,6 +64,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="PSPSections\BinaryWriterEx.cs" />
+    <Compile Include="PSPSections\BufferedBinaryReader.cs" />
     <Compile Include="PSPSections\ChannelSubBlock.cs" />
     <Compile Include="PSPSections\ColorPaletteBlock.cs" />
     <Compile Include="PSPSections\CompositeImageBlock.cs" />

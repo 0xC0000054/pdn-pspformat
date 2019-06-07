@@ -26,7 +26,7 @@ namespace PaintShopProFiletype.PSPSections
         private const uint Version6HeaderSize = 16U;
         private const uint Version5HeaderSize = 12U;
 
-        public ChannelSubBlock(BinaryReader br, PSPCompression compression, ushort majorVersion)
+        public ChannelSubBlock(BufferedBinaryReader br, PSPCompression compression, ushort majorVersion)
         {
             this.chunkSize = majorVersion > PSPConstants.majorVersion5 ? br.ReadUInt32() : 0U;
             this.compressedChannelLength = br.ReadUInt32();
@@ -38,7 +38,7 @@ namespace PaintShopProFiletype.PSPSections
             long dif = this.chunkSize - Version6HeaderSize;
             if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
             {
-                br.BaseStream.Position += dif;
+                br.Position += dif;
             }
 
             if (this.compressedChannelLength > 0U)

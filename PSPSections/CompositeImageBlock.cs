@@ -29,7 +29,7 @@ namespace PaintShopProFiletype.PSPSections
         private const uint HeaderSize = 24U;
 
 #if DEBUG
-        public CompositeImageAttributesChunk(BinaryReader br)
+        public CompositeImageAttributesChunk(BufferedBinaryReader br)
         {
             this.chunkSize = br.ReadUInt32();
             this.width = br.ReadInt32();
@@ -43,7 +43,7 @@ namespace PaintShopProFiletype.PSPSections
             uint dif = this.chunkSize - HeaderSize;
             if (dif > 0)
             {
-                br.BaseStream.Position += (long)dif;
+                br.Position += (long)dif;
             }
 
         }
@@ -88,7 +88,7 @@ namespace PaintShopProFiletype.PSPSections
         private const uint HeaderSize = 14U;
 
 #if DEBUG
-        public JPEGCompositeInfoChunk(BinaryReader br)
+        public JPEGCompositeInfoChunk(BufferedBinaryReader br)
         {
             this.chunkSize = br.ReadUInt32();
             this.compressedSize = br.ReadUInt32();
@@ -98,7 +98,7 @@ namespace PaintShopProFiletype.PSPSections
             uint dif = this.chunkSize - HeaderSize;
             if (dif > 0)
             {
-                br.BaseStream.Position += (long)dif;
+                br.Position += (long)dif;
             }
 
             this.imageData = br.ReadBytes((int)this.compressedSize);
@@ -137,7 +137,7 @@ namespace PaintShopProFiletype.PSPSections
         private const uint HeaderSize = 8U;
 
 #if DEBUG
-        public CompositeImageInfoChunk(BinaryReader br, CompositeImageAttributesChunk attr, ushort majorVersion)
+        public CompositeImageInfoChunk(BufferedBinaryReader br, CompositeImageAttributesChunk attr, ushort majorVersion)
         {
             this.chunkSize = br.ReadUInt32();
             this.bitmapCount = br.ReadUInt16();
@@ -148,7 +148,7 @@ namespace PaintShopProFiletype.PSPSections
             uint dif = this.chunkSize - HeaderSize;
             if (dif > 0)
             {
-                br.BaseStream.Position += (long)dif;
+                br.Position += (long)dif;
             }
 
             int index = 0;
@@ -226,7 +226,7 @@ namespace PaintShopProFiletype.PSPSections
         }
 
 #if DEBUG
-        public CompositeImageBlock(BinaryReader br, ushort majorVersion)
+        public CompositeImageBlock(BufferedBinaryReader br, ushort majorVersion)
         {
             this.blockSize = br.ReadUInt32();
             this.attrChunkCount = br.ReadUInt32();
@@ -234,7 +234,7 @@ namespace PaintShopProFiletype.PSPSections
             long dif = this.blockSize - HeaderSize;
             if (dif > 0)
             {
-                br.BaseStream.Position += dif;
+                br.Position += dif;
             }
 
             this.attrChunks = new CompositeImageAttributesChunk[(int)this.attrChunkCount];

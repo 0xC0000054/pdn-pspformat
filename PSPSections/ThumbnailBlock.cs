@@ -9,8 +9,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-using System.IO;
-
 namespace PaintShopProFiletype.PSPSections
 {
     /// <summary>
@@ -45,7 +43,7 @@ namespace PaintShopProFiletype.PSPSections
 #if DEBUG
         internal ColorPaletteBlock paletteSubBlock;
 
-        public ThumbnailBlock(BinaryReader br)
+        public ThumbnailBlock(BufferedBinaryReader br)
         {
             this.width = br.ReadInt32();
             this.height = br.ReadInt32();

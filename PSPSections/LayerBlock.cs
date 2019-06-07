@@ -32,19 +32,19 @@ namespace PaintShopProFiletype.PSPSections
 
         internal const uint HeaderSize = 8U;
 
-        public LayerBitmapInfoChunk(BinaryReader br, PSPCompression compression, ushort majorVersion)
+        public LayerBitmapInfoChunk(BufferedBinaryReader br, PSPCompression compression, ushort majorVersion)
         {
-            long startOffset = br.BaseStream.Position;
+            long startOffset = br.Position;
 
             this.chunkSize = br.ReadUInt32();
             this.bitmapCount = br.ReadUInt16();
             this.channelCount = br.ReadUInt16();
             this.channels = new ChannelSubBlock[this.channelCount];
 
-            long dif = this.chunkSize - (br.BaseStream.Position - startOffset);
+            long dif = this.chunkSize - (br.Position - startOffset);
             if (dif > 0L)
             {
-                br.BaseStream.Position += dif;
+                br.Position += dif;
             }
 
             for (int i = 0; i < this.channelCount; i++)
@@ -62,7 +62,7 @@ namespace PaintShopProFiletype.PSPSections
             }
         }
 
-        public LayerBitmapInfoChunk(BinaryReader br, PSPCompression compression, ushort v5BitmapCount, ushort v5ChannelCount)
+        public LayerBitmapInfoChunk(BufferedBinaryReader br, PSPCompression compression, ushort v5BitmapCount, ushort v5ChannelCount)
         {
             this.chunkSize = 0;
             this.bitmapCount = v5BitmapCount;
@@ -141,20 +141,20 @@ namespace PaintShopProFiletype.PSPSections
         /// </summary>
         private const uint Version6BaseChunkSize = 119 + sizeof(ushort);
 
-        public LayerInfoChunk(BinaryReader br, ushort majorVersion)
+        public LayerInfoChunk(BufferedBinaryReader br, ushort majorVersion)
         {
-            long startOffset = br.BaseStream.Position;
+            long startOffset = br.Position;
 
             if (majorVersion > PSPConstants.majorVersion5)
             {
                 this.chunkSize = br.ReadUInt32();
                 ushort nameLen = br.ReadUInt16();
-                this.name = Encoding.ASCII.GetString(br.ReadBytes(nameLen));
+                this.name = br.ReadAsciiString(nameLen);
             }
             else
             {
                 this.chunkSize = 0;
-                this.name = Encoding.ASCII.GetString(br.ReadBytes(256)).TrimEnd(new char[] {'\0'});
+                this.name = br.ReadAsciiString(256).TrimEnd(new char[] {'\0'});
             }
 
             this.type = (PSPLayerType)br.ReadByte();
@@ -199,10 +199,10 @@ namespace PaintShopProFiletype.PSPSections
                 this.v5ChannelCount = br.ReadUInt16();
             }
 
-            long dif = this.chunkSize - (br.BaseStream.Position - startOffset);
+            long dif = this.chunkSize - (br.Position - startOffset);
             if (dif > 0)
             {
-                br.BaseStream.Position += dif;
+                br.Position += dif;
             }
         }
 
@@ -321,7 +321,7 @@ namespace PaintShopProFiletype.PSPSections
             this.layerBitmapInfo = biChunks;
         }
 
-        public LayerBlock(BinaryReader br, GeneralImageAttributes imageAttributes, ushort majorVersion)
+        public LayerBlock(BufferedBinaryReader br, GeneralImageAttributes imageAttributes, ushort majorVersion)
         {
             IList<RasterLayerChunk> raster = CountRasterChunks(br, imageAttributes.LayerCount, majorVersion);
 
@@ -343,7 +343,7 @@ namespace PaintShopProFiletype.PSPSections
 
                 if (!chunk.layerInfo.saveRect.IsEmpty)
                 {
-                    br.BaseStream.Seek(chunk.bitmapInfoOffset, SeekOrigin.Begin);
+                    br.Position = chunk.bitmapInfoOffset;
                     if (majorVersion <= PSPConstants.majorVersion5)
                     {
                         this.layerBitmapInfo[i] = new LayerBitmapInfoChunk(br, compression, chunk.layerInfo.v5BitmapCount, chunk.layerInfo.v5ChannelCount);
@@ -400,7 +400,7 @@ namespace PaintShopProFiletype.PSPSections
             }
         }
 
-        private static IList<RasterLayerChunk> CountRasterChunks(BinaryReader reader, int layerCount, ushort majorVersion)
+        private static IList<RasterLayerChunk> CountRasterChunks(BufferedBinaryReader reader, int layerCount, ushort majorVersion)
         {
             List<RasterLayerChunk> rasterChunks = new List<RasterLayerChunk>(layerCount);
 
@@ -419,10 +419,10 @@ namespace PaintShopProFiletype.PSPSections
                 if (blockID == PSPBlockID.Layer)
                 {
                     index++;
-                    long endOffset = reader.BaseStream.Position + (long)blockLength;
+                    long endOffset = reader.Position + (long)blockLength;
 
                     LayerInfoChunk chunk = new LayerInfoChunk(reader, majorVersion);
-                    long currentOffset = reader.BaseStream.Position;
+                    long currentOffset = reader.Position;
 
                     switch (chunk.type)
                     {
@@ -439,11 +439,11 @@ namespace PaintShopProFiletype.PSPSections
 
                                     if (block == 0x21)
                                     {
-                                        reader.BaseStream.Position += (long)length;
+                                        reader.Position += (long)length;
                                         if (reader.ReadUInt32() == LayerBitmapInfoChunk.HeaderSize)
                                         {
-                                            reader.BaseStream.Position -= 4L;
-                                            currentOffset = reader.BaseStream.Position;
+                                            reader.Position -= 4L;
+                                            currentOffset = reader.Position;
                                             ok = true;
                                         }
                                     }
@@ -459,11 +459,11 @@ namespace PaintShopProFiletype.PSPSections
                             break;
                     }
 
-                    reader.BaseStream.Position += (endOffset - currentOffset);
+                    reader.Position += (endOffset - currentOffset);
                 }
                 else
                 {
-                    reader.BaseStream.Position += (long)blockLength;
+                    reader.Position += (long)blockLength;
                 }
             }
 

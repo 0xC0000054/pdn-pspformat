@@ -72,11 +72,11 @@ namespace PaintShopProFiletype.PSPSections
             this.appVersion = 1;
         }
 
-        public CreatorBlock(BinaryReader reader, uint blockLength)
+        public CreatorBlock(BufferedBinaryReader reader, uint blockLength)
         {
-            long endOffset = reader.BaseStream.Position + (long)blockLength;
+            long endOffset = reader.Position + (long)blockLength;
 
-            while (reader.BaseStream.Position < endOffset && reader.ReadUInt32() == PSPConstants.fieldIdentifier)
+            while (reader.Position < endOffset && reader.ReadUInt32() == PSPConstants.fieldIdentifier)
             {
                 PSPCreatorFieldID field = (PSPCreatorFieldID)reader.ReadUInt16();
                 uint fieldLength = reader.ReadUInt32();
@@ -84,7 +84,7 @@ namespace PaintShopProFiletype.PSPSections
                 switch (field)
                 {
                     case PSPCreatorFieldID.Title:
-                        this.title = Encoding.ASCII.GetString(reader.ReadBytes((int)fieldLength)).Trim();
+                        this.title = reader.ReadAsciiString((int)fieldLength).Trim();
                         break;
                     case PSPCreatorFieldID.CreateDate:
                         this.createDate = reader.ReadUInt32();
@@ -93,13 +93,13 @@ namespace PaintShopProFiletype.PSPSections
                         this.modDate = reader.ReadUInt32();
                         break;
                     case PSPCreatorFieldID.Artist:
-                        this.artist = Encoding.ASCII.GetString(reader.ReadBytes((int)fieldLength)).Trim();
+                        this.artist = reader.ReadAsciiString((int)fieldLength).Trim();
                         break;
                     case PSPCreatorFieldID.Copyright:
-                        this.copyRight = Encoding.ASCII.GetString(reader.ReadBytes((int)fieldLength)).Trim();
+                        this.copyRight = reader.ReadAsciiString((int)fieldLength).Trim();
                         break;
                     case PSPCreatorFieldID.Description:
-                        this.description = Encoding.ASCII.GetString(reader.ReadBytes((int)fieldLength)).Trim();
+                        this.description = reader.ReadAsciiString((int)fieldLength).Trim();
                         break;
                     case PSPCreatorFieldID.ApplicationID:
                         this.appID = (PSPCreatorAppID)reader.ReadUInt32();

@@ -41,7 +41,7 @@ namespace PaintShopProFiletype.PSPSections
         }
 
 
-        public FileHeader(BinaryReader br)
+        public FileHeader(BufferedBinaryReader br)
         {
             this.majorVersion = br.ReadUInt16();
             this.minorVersion = br.ReadUInt16();

@@ -116,14 +116,14 @@ namespace PaintShopProFiletype.PSPSections
             this.fileMajorVersion = majorVersion;
         }
 
-        public GeneralImageAttributes(BinaryReader br, ushort majorVersion)
+        public GeneralImageAttributes(BufferedBinaryReader br, ushort majorVersion)
         {
             this.fileMajorVersion = majorVersion;
 
             Load(br);
         }
 
-        private void Load(BinaryReader br)
+        private void Load(BufferedBinaryReader br)
         {
             long dataSize = this.fileMajorVersion > PSPConstants.majorVersion5 ? Version6HeaderSize : Version5HeaderSize;
 
@@ -154,7 +154,7 @@ namespace PaintShopProFiletype.PSPSections
 
             if (dif > 0 && this.fileMajorVersion > PSPConstants.majorVersion5) // skip any unknown chunks
             {
-                br.BaseStream.Position += dif;
+                br.Position += dif;
             }
         }
 

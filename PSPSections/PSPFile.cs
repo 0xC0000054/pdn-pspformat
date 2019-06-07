@@ -144,11 +144,11 @@ namespace PaintShopProFiletype
                 throw new FormatException(Properties.Resources.InvalidPSPFile);
             }
 
-            using (BinaryReader reader = new BinaryReader(input))
+            using (BufferedBinaryReader reader = new BufferedBinaryReader(input))
             {
                 this.fileHeader = new FileHeader(reader);
 
-                while (input.Position < input.Length)
+                while (reader.Position < reader.Length)
                 {
                     uint blockSig = reader.ReadUInt32();
                     if (blockSig != PSPConstants.blockIdentifier)
@@ -182,7 +182,7 @@ namespace PaintShopProFiletype
                             break;
 #endif
                         default:
-                            reader.BaseStream.Position += (long)blockLength;
+                            reader.Position += (long)blockLength;
                             break;
                     }
 

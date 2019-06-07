@@ -9,8 +9,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-using System.IO;
-
 namespace PaintShopProFiletype.PSPSections
 {
     internal sealed class ColorPaletteBlock
@@ -22,7 +20,7 @@ namespace PaintShopProFiletype.PSPSections
 
         private const uint HeaderSize = 8U;
 
-        public ColorPaletteBlock(BinaryReader br, ushort majorVersion)
+        public ColorPaletteBlock(BufferedBinaryReader br, ushort majorVersion)
         {
             this.chunkSize = majorVersion > PSPConstants.majorVersion5 ?  br.ReadUInt32() : 0;
             this.entriesCount = br.ReadUInt32();
@@ -39,7 +37,7 @@ namespace PaintShopProFiletype.PSPSections
             uint dif = this.chunkSize - HeaderSize;
             if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
             {
-                br.BaseStream.Position += (long)dif;
+                br.Position += (long)dif;
             }
         }
 
