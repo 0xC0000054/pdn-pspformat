@@ -104,7 +104,9 @@ namespace PaintShopProFiletype.PSPSections
                 for (int y = surface.Height - 1; y > rectPos.Bottom; y--)
                 {
                     if (ExpandImageRectangle(surface, y, 0, surface.Width, ref rectPos))
+                    {
                         break;
+                    }
                 }
 
                 // Search for left and right non-transparent pixels.  Because we
@@ -148,13 +150,25 @@ namespace PaintShopProFiletype.PSPSections
                 {
                     // Expand the rectangle to include the specified point.
                     if (x < rectPos.Left)
+                    {
                         rectPos.Left = x;
+                    }
+
                     if (x > rectPos.Right)
+                    {
                         rectPos.Right = x;
+                    }
+
                     if (y < rectPos.Top)
+                    {
                         rectPos.Top = y;
+                    }
+
                     if (y > rectPos.Bottom)
+                    {
                         rectPos.Bottom = y;
+                    }
+
                     fPixelFound = true;
                 }
                 pixel++;
