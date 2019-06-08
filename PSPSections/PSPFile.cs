@@ -948,8 +948,10 @@ namespace PaintShopProFiletype
                         bitmapCount = 2;
                     }
 
-                    LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk(bitmapCount, channelCount);
-                    biChunk.channels = SplitImageChannels(layer.Surface, savedBounds, channelCount, majorVersion, false, callback);
+                    LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk(bitmapCount, channelCount)
+                    {
+                        channels = SplitImageChannels(layer.Surface, savedBounds, channelCount, majorVersion, false, callback)
+                    };
 
                     if (majorVersion <= PSPConstants.majorVersion5)
                     {

@@ -180,9 +180,11 @@ namespace PaintShopProFiletype.PSPSections
             this.blendRanges = new BlendRange[5];
             for (int i = 0; i < 5; i++)
             {
-                this.blendRanges[i] = new BlendRange();
-                this.blendRanges[i].sourceRange = br.ReadUInt32();
-                this.blendRanges[i].destRange = br.ReadUInt32();
+                this.blendRanges[i] = new BlendRange
+                {
+                    sourceRange = br.ReadUInt32(),
+                    destRange = br.ReadUInt32()
+                };
             }
             this.v5BitmapCount = 0;
             this.v5ChannelCount = 0;

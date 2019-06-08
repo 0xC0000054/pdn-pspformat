@@ -56,11 +56,13 @@ namespace PaintShopProFiletype.PSPSections
                         byte[] compressedData = br.ReadBytes((int)this.compressedChannelLength);
                         this.channelData = new byte[this.uncompressedChannelLength];
 
-                        ZlibCodec codec = new ZlibCodec();
-                        codec.AvailableBytesIn = (int)this.compressedChannelLength;
-                        codec.AvailableBytesOut = (int)this.uncompressedChannelLength;
-                        codec.InputBuffer = compressedData;
-                        codec.OutputBuffer = this.channelData;
+                        ZlibCodec codec = new ZlibCodec
+                        {
+                            AvailableBytesIn = (int)this.compressedChannelLength,
+                            AvailableBytesOut = (int)this.uncompressedChannelLength,
+                            InputBuffer = compressedData,
+                            OutputBuffer = this.channelData
+                        };
                         codec.InitializeInflate();
 
                         int status = codec.Inflate(FlushType.Finish);
