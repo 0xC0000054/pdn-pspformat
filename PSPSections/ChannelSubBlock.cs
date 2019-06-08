@@ -35,7 +35,7 @@ namespace PaintShopProFiletype.PSPSections
             this.channelType = (PSPChannelType)br.ReadUInt16();
             this.channelData = null;
 
-            long dif = this.chunkSize - Version6HeaderSize;
+            long dif = (long)this.chunkSize - Version6HeaderSize;
             if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
             {
                 br.Position += dif;

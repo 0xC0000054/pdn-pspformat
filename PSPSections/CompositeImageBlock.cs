@@ -40,10 +40,10 @@ namespace PaintShopProFiletype.PSPSections
             this.colorCount = br.ReadUInt32();
             this.compositeImageType = (PSPCompositeImageType)br.ReadUInt16();
 
-            uint dif = this.chunkSize - HeaderSize;
+            long dif = (long)this.chunkSize - HeaderSize;
             if (dif > 0)
             {
-                br.Position += (long)dif;
+                br.Position += dif;
             }
 
         }
@@ -95,10 +95,10 @@ namespace PaintShopProFiletype.PSPSections
             this.unCompressedSize = br.ReadUInt32();
             this.imageType = (PSPDIBType)br.ReadUInt16();
 
-            uint dif = this.chunkSize - HeaderSize;
+            long dif = (long)this.chunkSize - HeaderSize;
             if (dif > 0)
             {
-                br.Position += (long)dif;
+                br.Position += dif;
             }
 
             this.imageData = br.ReadBytes((int)this.compressedSize);
@@ -145,10 +145,10 @@ namespace PaintShopProFiletype.PSPSections
             this.paletteSubBlock = null;
             this.channelBlocks = new ChannelSubBlock[this.channelCount];
 
-            uint dif = this.chunkSize - HeaderSize;
+            long dif = (long)this.chunkSize - HeaderSize;
             if (dif > 0)
             {
-                br.Position += (long)dif;
+                br.Position += dif;
             }
 
             int index = 0;
@@ -231,7 +231,7 @@ namespace PaintShopProFiletype.PSPSections
             this.blockSize = br.ReadUInt32();
             this.attrChunkCount = br.ReadUInt32();
 
-            long dif = this.blockSize - HeaderSize;
+            long dif = (long)this.blockSize - HeaderSize;
             if (dif > 0)
             {
                 br.Position += dif;
