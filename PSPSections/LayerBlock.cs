@@ -56,7 +56,9 @@ namespace PaintShopProFiletype.PSPSections
                 }
                 ushort blockID = br.ReadUInt16();
                 PSPUtil.CheckBlockType(blockID, PSPBlockID.Channel);
+#pragma warning disable IDE0059 // Value assigned to symbol is never used
                 uint size = br.ReadUInt32();
+#pragma warning restore IDE0059 // Value assigned to symbol is never used
 
                 this.channels[i] = new ChannelSubBlock(br, compression, majorVersion);
             }
@@ -78,8 +80,10 @@ namespace PaintShopProFiletype.PSPSections
                 }
                 ushort blockID = br.ReadUInt16();
                 PSPUtil.CheckBlockType(blockID, PSPBlockID.Channel);
+#pragma warning disable IDE0059 // Value assigned to symbol is never used
                 uint initialSize = br.ReadUInt32();
                 uint size = br.ReadUInt32();
+#pragma warning restore IDE0059 // Value assigned to symbol is never used
 
                 this.channels[i] = new ChannelSubBlock(br, compression, PSPConstants.majorVersion5);
             }
@@ -415,7 +419,9 @@ namespace PaintShopProFiletype.PSPSections
                     throw new FormatException(Properties.Resources.InvalidBlockSignature);
                 }
                 PSPBlockID blockID = (PSPBlockID)reader.ReadUInt16();
+#pragma warning disable IDE0059 // Value assigned to symbol is never used
                 uint initialBlockLength = majorVersion <= PSPConstants.majorVersion5 ? reader.ReadUInt32() : 0;
+#pragma warning restore IDE0059 // Value assigned to symbol is never used
                 uint blockLength = reader.ReadUInt32();
 
                 if (blockID == PSPBlockID.Layer)

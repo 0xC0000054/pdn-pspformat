@@ -160,7 +160,9 @@ namespace PaintShopProFiletype.PSPSections
                     throw new FormatException(Properties.Resources.InvalidBlockSignature);
                 }
                 PSPBlockID blockType = (PSPBlockID)br.ReadUInt16();
+#pragma warning disable IDE0059 // Value assigned to symbol is never used
                 uint chunkLength = br.ReadUInt32();
+#pragma warning restore IDE0059 // Value assigned to symbol is never used
 
                 switch (blockType)
                 {
@@ -248,7 +250,9 @@ namespace PaintShopProFiletype.PSPSections
                 }
                 ushort blockType = br.ReadUInt16();
                 PSPUtil.CheckBlockType(blockType, PSPBlockID.CompositeImageAttributes);
+#pragma warning disable IDE0059 // Value assigned to symbol is never used
                 uint attrChunkLength = br.ReadUInt32();
+#pragma warning restore IDE0059 // Value assigned to symbol is never used
 
                 this.attrChunks[i] = new CompositeImageAttributesChunk(br);
             }
@@ -261,7 +265,9 @@ namespace PaintShopProFiletype.PSPSections
                     throw new FormatException(Properties.Resources.InvalidBlockSignature);
                 }
                 PSPBlockID blockType = (PSPBlockID)br.ReadUInt16();
+#pragma warning disable IDE0059 // Value assigned to symbol is never used
                 uint chunkLength = br.ReadUInt32();
+#pragma warning restore IDE0059 // Value assigned to symbol is never used
 
                 switch (blockType)
                 {
