@@ -301,7 +301,7 @@ namespace PaintShopProFiletype.PSPSections
                 bw.Write(this.blockSize);
                 bw.Write(this.attrChunkCount);
 
-                foreach (var item in this.attrChunks)
+                foreach (CompositeImageAttributesChunk item in this.attrChunks)
                 {
                     item.Save(bw);
                 }
