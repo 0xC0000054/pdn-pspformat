@@ -25,10 +25,6 @@ namespace PaintShopProFiletype.PSPSections
         private string artist;
         private string copyRight;
         private string description;
-        [NonSerialized]
-        private PSPCreatorAppID appID;
-        [NonSerialized]
-        private uint appVersion;
 
         private static readonly DateTime UnixEpochLocal = new DateTime(1970, 1, 1).ToLocalTime();
         /// <summary>
@@ -68,8 +64,6 @@ namespace PaintShopProFiletype.PSPSections
             this.artist = string.Empty;
             this.copyRight = string.Empty;
             this.description = string.Empty;
-            this.appID = PSPCreatorAppID.Unknown;
-            this.appVersion = 1;
         }
 
         public CreatorBlock(BufferedBinaryReader reader, uint blockLength)
@@ -101,12 +95,14 @@ namespace PaintShopProFiletype.PSPSections
                     case PSPCreatorFieldID.Description:
                         this.description = reader.ReadAsciiString((int)fieldLength).Trim();
                         break;
+#if DEBUG
                     case PSPCreatorFieldID.ApplicationID:
-                        this.appID = (PSPCreatorAppID)reader.ReadUInt32();
+                        PSPCreatorAppID appID = (PSPCreatorAppID)reader.ReadUInt32();
                         break;
                     case PSPCreatorFieldID.ApplicationVersion:
-                        this.appVersion = reader.ReadUInt32();
+                        uint appVersion = reader.ReadUInt32();
                         break;
+#endif
                     default:
                         reader.Position += fieldLength;
                         break;
