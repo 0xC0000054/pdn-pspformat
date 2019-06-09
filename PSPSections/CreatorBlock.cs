@@ -124,6 +124,14 @@ namespace PaintShopProFiletype.PSPSections
             writer.Write(bytes);
         }
 
+        private static void WriteUInt32Field(BinaryWriter writer, PSPCreatorFieldID field, uint value)
+        {
+            writer.Write(PSPConstants.fieldIdentifier);
+            writer.Write((ushort)field);
+            writer.Write(sizeof(uint));
+            writer.Write(value);
+        }
+
         public void Save(BinaryWriter writer)
         {
             writer.Write(PSPConstants.blockIdentifier);
@@ -138,16 +146,10 @@ namespace PaintShopProFiletype.PSPSections
 
                 if (this.createDate != 0U)
                 {
-                    writer.Write(PSPConstants.fieldIdentifier);
-                    writer.Write((ushort)PSPCreatorFieldID.CreateDate);
-                    writer.Write(sizeof(uint));
-                    writer.Write(this.createDate);
+                    WriteUInt32Field(writer, PSPCreatorFieldID.CreateDate, this.createDate);
                 }
 
-                writer.Write(PSPConstants.fieldIdentifier);
-                writer.Write((ushort)PSPCreatorFieldID.ModifiedDate);
-                writer.Write(sizeof(uint));
-                writer.Write(GetCurrentUnixTimestamp());
+                WriteUInt32Field(writer, PSPCreatorFieldID.ModifiedDate, GetCurrentUnixTimestamp());
 
                 if (!string.IsNullOrEmpty(this.artist))
                 {
