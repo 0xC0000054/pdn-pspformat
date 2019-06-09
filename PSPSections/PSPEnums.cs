@@ -198,6 +198,7 @@ namespace PaintShopProFiletype.PSPSections
     [Flags]
     internal enum PSPGraphicContents : uint
     {
+        None = 0,
         // Layer types
         RasterLayers = 0x00000001, // At least one raster layer
         VectorLayers = 0x00000002, // At least one vector layer
