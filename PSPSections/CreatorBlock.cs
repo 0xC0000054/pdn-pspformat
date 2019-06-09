@@ -68,7 +68,7 @@ namespace PaintShopProFiletype.PSPSections
 
         public CreatorBlock(BufferedBinaryReader reader, uint blockLength)
         {
-            long endOffset = reader.Position + (long)blockLength;
+            long endOffset = reader.Position + blockLength;
 
             while (reader.Position < endOffset && reader.ReadUInt32() == PSPConstants.fieldIdentifier)
             {

@@ -182,7 +182,7 @@ namespace PaintShopProFiletype
                             break;
 #endif
                         default:
-                            reader.Position += (long)blockLength;
+                            reader.Position += blockLength;
                             break;
                     }
 
@@ -704,7 +704,7 @@ namespace PaintShopProFiletype
                     {
                         this.doneProgress++;
 
-                        callback(this, new ProgressEventArgs(100.0 * ((double)this.doneProgress / (double)this.totalProgress)));
+                        callback(this, new ProgressEventArgs(100.0 * ((double)this.doneProgress / this.totalProgress)));
                     }
 
                     channels[channelIndex].compressedChannelLength = (uint)compBuffer.Length;

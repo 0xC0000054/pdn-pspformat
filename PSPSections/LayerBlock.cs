@@ -427,7 +427,7 @@ namespace PaintShopProFiletype.PSPSections
                 if (blockID == PSPBlockID.Layer)
                 {
                     index++;
-                    long endOffset = reader.Position + (long)blockLength;
+                    long endOffset = reader.Position + blockLength;
 
                     LayerInfoChunk chunk = new LayerInfoChunk(reader, majorVersion);
                     long currentOffset = reader.Position;
@@ -447,7 +447,7 @@ namespace PaintShopProFiletype.PSPSections
 
                                     if (block == 0x21)
                                     {
-                                        reader.Position += (long)length;
+                                        reader.Position += length;
                                         if (reader.ReadUInt32() == LayerBitmapInfoChunk.HeaderSize)
                                         {
                                             reader.Position -= 4L;
@@ -471,7 +471,7 @@ namespace PaintShopProFiletype.PSPSections
                 }
                 else
                 {
-                    reader.Position += (long)blockLength;
+                    reader.Position += blockLength;
                 }
             }
 

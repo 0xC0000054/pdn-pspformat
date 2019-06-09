@@ -54,7 +54,7 @@ namespace PaintShopProFiletype.PSPSections
             this.paletteEntryCount = br.ReadUInt32();
             this.channelCount = br.ReadUInt16();
 
-            this.channelBlocks = new ChannelSubBlock[(int)this.channelCount];
+            this.channelBlocks = new ChannelSubBlock[this.channelCount];
 
             int index = 0;
             do

@@ -39,7 +39,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             long startOffset = br.Position;
 
-            long endOffset = startOffset + (long)this.blockLength;
+            long endOffset = startOffset + this.blockLength;
 
             while ((br.Position < endOffset) && br.ReadUInt32() == PSPConstants.fieldIdentifier)
             {
