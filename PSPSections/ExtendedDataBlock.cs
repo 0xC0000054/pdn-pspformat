@@ -16,7 +16,9 @@ namespace PaintShopProFiletype.PSPSections
     internal class ExtendedDataBlock
     {
         private uint blockLength;
+#pragma warning disable IDE0032 // Use auto property
         private Dictionary<PSPExtendedDataID, byte[]> values;
+#pragma warning restore IDE0032 // Use auto property
 
         public Dictionary<PSPExtendedDataID, byte[]> Values
         {

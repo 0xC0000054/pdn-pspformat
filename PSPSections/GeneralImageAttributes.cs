@@ -19,6 +19,7 @@ namespace PaintShopProFiletype.PSPSections
 {
     internal class GeneralImageAttributes
     {
+#pragma warning disable IDE0032 // Use auto property
         private uint chunkSize;
         private int width;
         private int height;
@@ -33,6 +34,7 @@ namespace PaintShopProFiletype.PSPSections
         private int activeLayer;
         private ushort layerCount;
         private PSPGraphicContents graphicContents;
+#pragma warning restore IDE0032 // Use auto property
 
         public int Width
         {
