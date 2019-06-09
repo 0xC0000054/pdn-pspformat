@@ -108,6 +108,7 @@ namespace PaintShopProFiletype.PSPSections
                         this.appVersion = reader.ReadUInt32();
                         break;
                     default:
+                        reader.Position += fieldLength;
                         break;
                 }
             }
