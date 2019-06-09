@@ -145,7 +145,7 @@ namespace PaintShopProFiletype.PSPSections
             }
             else
             {
-                this.graphicContents = (PSPGraphicContents)0U;
+                this.graphicContents = PSPGraphicContents.None;
             }
 
             long minChunkSize = this.fileMajorVersion > PSPConstants.majorVersion5 ? Version6HeaderSize : Version5HeaderSize;
