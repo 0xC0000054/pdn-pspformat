@@ -125,8 +125,6 @@ namespace PaintShopProFiletype.PSPSections
 
         private void Load(BufferedBinaryReader br)
         {
-            long dataSize = this.fileMajorVersion > PSPConstants.majorVersion5 ? Version6HeaderSize : Version5HeaderSize;
-
             this.chunkSize = this.fileMajorVersion > PSPConstants.majorVersion5 ? br.ReadUInt32() : 0;
             this.width = br.ReadInt32();
             this.height = br.ReadInt32();
@@ -150,7 +148,8 @@ namespace PaintShopProFiletype.PSPSections
                 this.graphicContents = (PSPGraphicContents)0U;
             }
 
-            long dif = this.chunkSize - dataSize;
+            long minChunkSize = this.fileMajorVersion > PSPConstants.majorVersion5 ? Version6HeaderSize : Version5HeaderSize;
+            long dif = this.chunkSize - minChunkSize;
 
             if (dif > 0 && this.fileMajorVersion > PSPConstants.majorVersion5) // skip any unknown chunks
             {
