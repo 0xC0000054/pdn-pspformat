@@ -314,6 +314,17 @@ namespace PaintShopProFiletype
                 }
             }
 
+            short transIndex = -1;
+
+            if (this.imageAttributes.BitDepth < 24 && this.extData != null)
+            {
+                byte[] data;
+                if (this.extData.Values.TryGetValue(PSPExtendedDataID.TransparencyIndex, out data))
+                {
+                    transIndex = BitConverter.ToInt16(data, 0);
+                }
+            }
+
             LayerBitmapInfoChunk[] bitmapInfoChunks =  this.layerBlock.LayerBitmapInfo;
 
             for (int i = 0; i < layerCount; i++)
@@ -330,17 +341,6 @@ namespace PaintShopProFiletype
                 if (!saveRect.IsEmpty)
                 {
                     LayerBitmapInfoChunk bitmapInfo = bitmapInfoChunks[i];
-
-                    short transIndex = -1;
-
-                    if (this.imageAttributes.BitDepth < 24 && this.extData != null)
-                    {
-                        byte[] data;
-                        if (this.extData.Values.TryGetValue(PSPExtendedDataID.TransparencyIndex, out data))
-                        {
-                            transIndex = BitConverter.ToInt16(data, 0);
-                        }
-                    }
 
                     if (bitmapInfo.bitmapCount == 1)
                     {
