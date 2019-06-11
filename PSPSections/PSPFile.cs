@@ -827,103 +827,11 @@ namespace PaintShopProFiletype
 
                 if (majorVersion > PSPConstants.majorVersion5)
                 {
-                    Size jpegThumbSize = GetThumbnailDimensions(input.Width, input.Height, 200);
-
-                    CompositeImageAttributesChunk normAttr = new CompositeImageAttributesChunk(input.Width, input.Height, PSPCompositeImageType.Composite, this.imageAttributes.CompressionType);
-                    CompositeImageAttributesChunk jpgAttr = new CompositeImageAttributesChunk(jpegThumbSize.Width, jpegThumbSize.Height, PSPCompositeImageType.Thumbnail, PSPCompression.JPEG);
-                    JPEGCompositeInfoChunk jpgChunk = new JPEGCompositeInfoChunk();
-                    CompositeImageInfoChunk infoChunk = new CompositeImageInfoChunk();
-
-                    using (RenderArgs args = new RenderArgs(scratchSurface))
-                    {
-                        input.Render(args, true);
-
-                        int channelCount = 3;
-                        if (LayerHasTransparency(args.Surface, args.Surface.Bounds))
-                        {
-                            channelCount = 4;
-                            infoChunk.channelCount = 4;
-                            infoChunk.bitmapCount = 2;
-                        }
-#if DEBUG
-                        using (Bitmap bmp = args.Surface.CreateAliasedBitmap())
-                        {
-
-                        }
-#endif
-
-                        this.totalProgress += channelCount;
-
-                        infoChunk.channelBlocks = SplitImageChannels(args.Surface, args.Surface.Bounds, channelCount, majorVersion, true, callback);
-
-                        using (Surface fit = new Surface(jpegThumbSize))
-                        {
-                            fit.FitSurface(ResamplingAlgorithm.SuperSampling, args.Surface);
-
-                            if (channelCount == 4)
-                            {
-                                unsafe
-                                {
-                                    for (int y = 0; y < jpgAttr.height; y++)
-                                    {
-                                        ColorBgra* ptr = fit.GetRowAddressUnchecked(y);
-                                        ColorBgra* endPtr = ptr + jpgAttr.width;
-
-                                        while (ptr < endPtr)
-                                        {
-                                            if (ptr->A == 0)
-                                            {
-                                                ptr->Bgra |= 0x00ffffff; // set the color of the transparent pixels to white, same as Paint Shop Pro
-                                            }
-
-                                            ptr++;
-                                        }
-                                    }
-                                }
-                            }
-
-                            using (Bitmap temp = fit.CreateAliasedBitmap(false))
-                            {
-                                using (MemoryStream stream = new MemoryStream())
-                                {
-                                    temp.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
-
-                                    jpgChunk.imageData = stream.ToArray();
-                                    jpgChunk.compressedSize = (uint)stream.Length;
-                                }
-                            }
-                        }
-                    }
-
-                    this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.Composite);
-                    this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.Thumbnail);
-
-                    if (infoChunk.bitmapCount == 2)
-                    {
-                        this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.CompositeTransparency);
-                    }
-
-                    this.compImage = new CompositeImageBlock(new CompositeImageAttributesChunk[2] { jpgAttr, normAttr }, jpgChunk, infoChunk);
+                    CreateCompositeImageBlock(input, scratchSurface, callback, majorVersion);
                 }
                 else
                 {
-                    Size thumbSize = GetThumbnailDimensions(input.Width, input.Height, 300);
-
-                    this.v5Thumbnail = new ThumbnailBlock(thumbSize.Width, thumbSize.Height);
-
-                    scratchSurface.Clear(ColorBgra.White);
-                    using (RenderArgs args = new RenderArgs(scratchSurface))
-                    {
-                        input.Render(args, false);
-                        using (Surface fit = new Surface(thumbSize))
-                        {
-                            fit.FitSurface(ResamplingAlgorithm.SuperSampling, args.Surface);
-
-                            this.totalProgress += 3;
-
-                            this.v5Thumbnail.channelBlocks = SplitImageChannels(args.Surface, args.Surface.Bounds, 3, majorVersion, true, callback);
-                        }
-                    }
+                    CreateThumbnailBlock(input, scratchSurface, callback, majorVersion);
                 }
 
                 int layerCount = input.Layers.Count;
@@ -990,6 +898,115 @@ namespace PaintShopProFiletype
                 this.layerBlock.Save(writer, majorVersion);
             }
 
+        }
+
+        private void CreateCompositeImageBlock(Document input, Surface scratchSurface, ProgressEventHandler callback, ushort majorVersion)
+        {
+            Size jpegThumbSize = GetThumbnailDimensions(input.Width, input.Height, 200);
+
+            CompositeImageAttributesChunk normAttr = new CompositeImageAttributesChunk(
+                input.Width,
+                input.Height,
+                PSPCompositeImageType.Composite,
+                this.imageAttributes.CompressionType);
+            CompositeImageAttributesChunk jpgAttr = new CompositeImageAttributesChunk(
+                jpegThumbSize.Width,
+                jpegThumbSize.Height,
+                PSPCompositeImageType.Thumbnail,
+                PSPCompression.JPEG);
+            JPEGCompositeInfoChunk jpgChunk = new JPEGCompositeInfoChunk();
+            CompositeImageInfoChunk infoChunk = new CompositeImageInfoChunk();
+
+            using (RenderArgs args = new RenderArgs(scratchSurface))
+            {
+                input.Render(args, true);
+
+                int channelCount = 3;
+                if (LayerHasTransparency(args.Surface, args.Surface.Bounds))
+                {
+                    channelCount = 4;
+                    infoChunk.channelCount = 4;
+                    infoChunk.bitmapCount = 2;
+                }
+#if DEBUG
+                using (Bitmap bmp = args.Surface.CreateAliasedBitmap())
+                {
+                }
+#endif
+
+                this.totalProgress += channelCount;
+
+                infoChunk.channelBlocks = SplitImageChannels(args.Surface, args.Surface.Bounds, channelCount, majorVersion, true, callback);
+
+                using (Surface fit = new Surface(jpegThumbSize))
+                {
+                    fit.FitSurface(ResamplingAlgorithm.SuperSampling, args.Surface);
+
+                    if (channelCount == 4)
+                    {
+                        unsafe
+                        {
+                            for (int y = 0; y < jpgAttr.height; y++)
+                            {
+                                ColorBgra* ptr = fit.GetRowAddressUnchecked(y);
+                                ColorBgra* endPtr = ptr + jpgAttr.width;
+
+                                while (ptr < endPtr)
+                                {
+                                    if (ptr->A == 0)
+                                    {
+                                        ptr->Bgra |= 0x00ffffff; // set the color of the transparent pixels to white, same as Paint Shop Pro
+                                    }
+
+                                    ptr++;
+                                }
+                            }
+                        }
+                    }
+
+                    using (Bitmap temp = fit.CreateAliasedBitmap(false))
+                    {
+                        using (MemoryStream stream = new MemoryStream())
+                        {
+                            temp.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                            jpgChunk.imageData = stream.ToArray();
+                            jpgChunk.compressedSize = (uint)stream.Length;
+                        }
+                    }
+                }
+            }
+
+            this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.Composite);
+            this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.Thumbnail);
+
+            if (infoChunk.bitmapCount == 2)
+            {
+                this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.CompositeTransparency);
+            }
+
+            this.compImage = new CompositeImageBlock(new CompositeImageAttributesChunk[2] { jpgAttr, normAttr }, jpgChunk, infoChunk);
+        }
+
+        private void CreateThumbnailBlock(Document input, Surface scratchSurface, ProgressEventHandler callback, ushort majorVersion)
+        {
+            Size thumbSize = GetThumbnailDimensions(input.Width, input.Height, 300);
+
+            this.v5Thumbnail = new ThumbnailBlock(thumbSize.Width, thumbSize.Height);
+
+            scratchSurface.Clear(ColorBgra.White);
+            using (RenderArgs args = new RenderArgs(scratchSurface))
+            {
+                input.Render(args, false);
+                using (Surface fit = new Surface(thumbSize))
+                {
+                    fit.FitSurface(ResamplingAlgorithm.SuperSampling, args.Surface);
+
+                    this.totalProgress += 3;
+
+                    this.v5Thumbnail.channelBlocks = SplitImageChannels(args.Surface, args.Surface.Bounds, 3, majorVersion, true, callback);
+                }
+            }
         }
     }
 }
