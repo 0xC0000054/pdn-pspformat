@@ -65,7 +65,9 @@ namespace PaintShopProFiletype.PSPSections
                     throw new System.FormatException(Properties.Resources.InvalidBlockSignature);
                 }
                 PSPBlockID blockType = (PSPBlockID)br.ReadUInt16();
+#pragma warning disable IDE0059 // Value assigned to symbol is never used
                 uint chunkLength = br.ReadUInt32();
+#pragma warning restore IDE0059 // Value assigned to symbol is never used
 
                 switch (blockType)
                 {
