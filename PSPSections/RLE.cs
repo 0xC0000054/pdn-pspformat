@@ -20,8 +20,8 @@ namespace PaintShopProFiletype.PSPSections
             int srcIndx = 0;
             int dstIndx = 0;
 
-            int len = 0;
-            byte value = 0;
+            int len;
+            byte value;
             int compLength = compressedData.Length;
 
             while (srcIndx < compLength && dstIndx < uncompressedLength)
