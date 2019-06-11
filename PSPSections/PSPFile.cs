@@ -32,7 +32,8 @@ namespace PaintShopProFiletype
 {
     internal sealed class PSPFile
     {
-        private static byte[] PSPFileSig = new byte[32] {0x50, 0x61, 0x69, 0x6E, 0x74, 0x20, 0x53, 0x68, 0x6F, 0x70, 0x20, 0x50,
+        private static byte[] PSPFileSig = new byte[32]
+        { 0x50, 0x61, 0x69, 0x6E, 0x74, 0x20, 0x53, 0x68, 0x6F, 0x70, 0x20, 0x50,
         0x72, 0x6F, 0x20, 0x49, 0x6D, 0x61, 0x67, 0x65, 0x20, 0x46, 0x69, 0x6C, 0x65, 0x0A,
         0x1A, 0x00, 0x00, 0x00, 0x00, 0x00}; // "Paint Shop Pro Image File\n\x1a” padded to 32 bytes
 
@@ -576,7 +577,13 @@ namespace PaintShopProFiletype
 
         private int doneProgress;
         private int totalProgress;
-        private unsafe ChannelSubBlock[] SplitImageChannels(Surface source, Rectangle savedBounds, int channelCount, ushort majorVersion, bool composite, ProgressEventHandler callback)
+        private unsafe ChannelSubBlock[] SplitImageChannels(
+            Surface source,
+            Rectangle savedBounds,
+            int channelCount,
+            ushort majorVersion,
+            bool composite,
+            ProgressEventHandler callback)
         {
             ChannelSubBlock[] channels = new ChannelSubBlock[channelCount];
 
@@ -782,7 +789,13 @@ namespace PaintShopProFiletype
             using (BinaryWriterEx writer = new BinaryWriterEx(output, false))
             {
                 this.fileHeader = new FileHeader(majorVersion);
-                this.imageAttributes = new GeneralImageAttributes(input.Width, input.Height, CompressionFromTokenFormat(format), 0, input.Layers.Count, majorVersion);
+                this.imageAttributes = new GeneralImageAttributes(
+                    input.Width,
+                    input.Height,
+                    CompressionFromTokenFormat(format),
+                    0,
+                    input.Layers.Count,
+                    majorVersion);
                 switch (input.DpuUnit)
                 {
                     case MeasurementUnit.Centimeter:
