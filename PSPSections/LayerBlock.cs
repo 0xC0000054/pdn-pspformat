@@ -302,8 +302,10 @@ namespace PaintShopProFiletype.PSPSections
 
     internal sealed class LayerBlock
     {
+#pragma warning disable IDE0032 // Use auto property
         private LayerInfoChunk[] layerInfoChunks;
         private LayerBitmapInfoChunk[] layerBitmapInfo;
+#pragma warning restore IDE0032 // Use auto property
 
         public LayerInfoChunk[] LayerInfo
         {
