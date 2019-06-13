@@ -112,7 +112,6 @@ namespace PaintShopProFiletype.PSPSections
             this.imageData = null;
         }
 
-
         public void Save(BinaryWriter bw)
         {
             bw.Write(PSPConstants.blockIdentifier);

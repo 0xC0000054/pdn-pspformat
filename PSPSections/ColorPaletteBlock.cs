@@ -40,7 +40,6 @@ namespace PaintShopProFiletype.PSPSections
                 br.Position += dif;
             }
         }
-
     }
 
 }

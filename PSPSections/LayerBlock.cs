@@ -393,7 +393,6 @@ namespace PaintShopProFiletype.PSPSections
                     }
                 }
             }
-
         }
 
         private sealed class RasterLayerChunk

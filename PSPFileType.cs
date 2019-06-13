@@ -71,7 +71,6 @@ namespace PaintShopProFiletype
             return info;
         }
 
-
         private enum PropertyNames
         {
             FileVersion,

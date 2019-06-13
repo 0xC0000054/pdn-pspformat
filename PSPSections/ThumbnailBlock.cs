@@ -82,7 +82,6 @@ namespace PaintShopProFiletype.PSPSections
                 }
             }
             while (index < this.channelCount);
-
         }
 #endif
 

@@ -163,7 +163,6 @@ namespace PaintShopProFiletype.PSPSections
                     WriteASCIIField(writer, PSPCreatorFieldID.Description, this.description);
                 }
             }
-
         }
     }
 }

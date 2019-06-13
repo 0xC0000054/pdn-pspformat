@@ -186,7 +186,6 @@ namespace PaintShopProFiletype
                             reader.Position += blockLength;
                             break;
                     }
-
                 }
             }
         }
@@ -246,7 +245,6 @@ namespace PaintShopProFiletype
                                 // extract the palette bit for the current pixel.
                                 *dst = (byte)((data & (128 >> mask)) >> (7 - mask));
                                 break;
-
                         }
 
                         dst++;
@@ -603,7 +601,6 @@ namespace PaintShopProFiletype
                             channels[i].bitmapType = i < 3 ? PSPDIBType.Composite : PSPDIBType.CompositeTransparencyMask;
                             break;
                     }
-
                 }
                 else
                 {
@@ -672,7 +669,6 @@ namespace PaintShopProFiletype
                             break;
                     }
 
-
                     byte[] compBuffer = null;
 
                     switch (this.imageAttributes.CompressionType)
@@ -716,7 +712,6 @@ namespace PaintShopProFiletype
 
                     channels[channelIndex].compressedChannelLength = (uint)compBuffer.Length;
                     channels[channelIndex].channelData = compBuffer;
-
                 }
             }
 
@@ -910,7 +905,6 @@ namespace PaintShopProFiletype
                 }
                 this.layerBlock.Save(writer, majorVersion);
             }
-
         }
 
         private void CreateCompositeImageBlock(Document input, Surface scratchSurface, ProgressEventHandler callback, ushort majorVersion)
