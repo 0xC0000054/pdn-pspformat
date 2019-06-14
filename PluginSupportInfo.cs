@@ -53,7 +53,7 @@ namespace PaintShopProFiletype
         {
             get
             {
-                return new Uri("http://www.getpaint.net/redirect/plugins.html");
+                return new Uri("https://forums.getpaint.net/index.php?showtopic=22817");
             }
         }
     }
