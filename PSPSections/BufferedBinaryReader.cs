@@ -192,10 +192,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             VerifyNotDisposed();
 
-            if ((this.readOffset + sizeof(byte)) > this.readLength)
-            {
-                FillBuffer(sizeof(byte));
-            }
+            EnsureBuffer(sizeof(byte));
 
             byte val = this.buffer[this.readOffset];
             this.readOffset += sizeof(byte);
@@ -300,10 +297,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             VerifyNotDisposed();
 
-            if ((this.readOffset + sizeof(ushort)) > this.readLength)
-            {
-                FillBuffer(sizeof(ushort));
-            }
+            EnsureBuffer(sizeof(ushort));
 
             ushort val = (ushort)(this.buffer[this.readOffset] | (this.buffer[this.readOffset + 1] << 8));
 
@@ -333,10 +327,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             VerifyNotDisposed();
 
-            if ((this.readOffset + sizeof(uint)) > this.readLength)
-            {
-                FillBuffer(sizeof(uint));
-            }
+            EnsureBuffer(sizeof(uint));
 
             uint val = (uint)(this.buffer[this.readOffset]
                               | (this.buffer[this.readOffset + 1] << 8)
@@ -382,10 +373,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             VerifyNotDisposed();
 
-            if ((this.readOffset + sizeof(ulong)) > this.readLength)
-            {
-                FillBuffer(sizeof(ulong));
-            }
+            EnsureBuffer(sizeof(ulong));
 
             uint lo = (uint)(this.buffer[this.readOffset]
                              | (this.buffer[this.readOffset + 1] << 8)
@@ -424,16 +412,21 @@ namespace PaintShopProFiletype.PSPSections
                 return string.Empty;
             }
 
-            if ((this.readOffset + length) > this.readLength)
-            {
-                FillBuffer(length);
-            }
+            EnsureBuffer(length);
 
             string value = System.Text.Encoding.ASCII.GetString(this.buffer, this.readOffset, length);
 
             this.readOffset += length;
 
             return value;
+        }
+
+        private void EnsureBuffer(int count)
+        {
+            if ((this.readOffset + count) > this.readLength)
+            {
+                FillBuffer(count);
+            }
         }
 
         /// <summary>
