@@ -11,12 +11,8 @@
 
 namespace PaintShopProFiletype.PSPSections
 {
-    internal class PSPConstants
+    internal static class PSPConstants
     {
-        private PSPConstants()
-        {
-        }
-
         /// <summary>
         /// Paint Shop Pro 5
         /// </summary>
