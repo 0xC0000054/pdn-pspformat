@@ -421,6 +421,11 @@ namespace PaintShopProFiletype.PSPSections
             return value;
         }
 
+        /// <summary>
+        /// Ensures that the buffer contains at least the number of bytes requested.
+        /// </summary>
+        /// <param name="count">The minimum number of bytes the buffer should contain.</param>
+        /// <exception cref="EndOfStreamException">The end of the stream has been reached.</exception>
         private void EnsureBuffer(int count)
         {
             if ((this.readOffset + count) > this.readLength)
