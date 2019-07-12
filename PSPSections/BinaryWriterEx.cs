@@ -16,6 +16,7 @@ namespace PaintShopProFiletype.PSPSections
     internal class BinaryWriterEx : BinaryWriter
     {
         private bool ownStream;
+
         public BinaryWriterEx(Stream stream, bool ownStream) : base(stream)
         {
             this.ownStream = ownStream;
