@@ -317,11 +317,7 @@ namespace PaintShopProFiletype
 
             if (this.imageAttributes.BitDepth < 24 && this.extData != null)
             {
-                byte[] data;
-                if (this.extData.Values.TryGetValue(PSPExtendedDataID.TransparencyIndex, out data))
-                {
-                    transIndex = BitConverter.ToInt16(data, 0);
-                }
+                transIndex = this.extData.TryGetTransparencyIndex();
             }
 
             LayerBitmapInfoChunk[] bitmapInfoChunks =  this.layerBlock.LayerBitmapInfo;

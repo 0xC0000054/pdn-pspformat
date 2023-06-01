@@ -9,30 +9,37 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Collections.Generic;
 
 namespace PaintShopProFiletype.PSPSections
 {
     internal class ExtendedDataBlock
     {
-        private uint blockLength;
-#pragma warning disable IDE0032 // Use auto property
-        private Dictionary<PSPExtendedDataID, byte[]> values;
-#pragma warning restore IDE0032 // Use auto property
-
-        public Dictionary<PSPExtendedDataID, byte[]> Values
-        {
-            get
-            {
-                return this.values;
-            }
-        }
+        private readonly uint blockLength;
+        private readonly List<KeyValuePair<PSPExtendedDataID, byte[]>> values;
 
         public ExtendedDataBlock(BufferedBinaryReader br, uint blockLength)
         {
             this.blockLength = blockLength;
-            this.values = new Dictionary<PSPExtendedDataID, byte[]>();
+            this.values = new List<KeyValuePair<PSPExtendedDataID, byte[]>>();
             Load(br);
+        }
+
+        public short TryGetTransparencyIndex()
+        {
+            short index = -1;
+
+            foreach (var item in this.values)
+            {
+                if (item.Key == PSPExtendedDataID.TransparencyIndex)
+                {
+                    index = BitConverter.ToInt16(item.Value, 0);
+                    break;
+                }
+            }
+
+            return index;
         }
 
         private void Load(BufferedBinaryReader br)
@@ -48,7 +55,8 @@ namespace PaintShopProFiletype.PSPSections
                 uint fieldLength = br.ReadUInt32();
 
                 byte[] data = br.ReadBytes((int)fieldLength);
-                this.values.Add(fieldID, data);
+
+                this.values.Add(new KeyValuePair<PSPExtendedDataID, byte[]>(fieldID, data));
             }
 
             long dif = this.blockLength - (br.Position - startOffset);
