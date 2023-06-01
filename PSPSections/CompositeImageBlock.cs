@@ -40,12 +40,11 @@ namespace PaintShopProFiletype.PSPSections
             this.colorCount = br.ReadUInt32();
             this.compositeImageType = (PSPCompositeImageType)br.ReadUInt16();
 
-            long dif = (long)this.chunkSize - HeaderSize;
-            if (dif > 0)
+            long bytesToSkip = (long)this.chunkSize - HeaderSize;
+            if (bytesToSkip > 0)
             {
-                br.Position += dif;
+                br.Position += bytesToSkip;
             }
-
         }
 #endif
         public CompositeImageAttributesChunk(int width, int height, PSPCompositeImageType imageType, PSPCompression compression)
@@ -95,10 +94,10 @@ namespace PaintShopProFiletype.PSPSections
             this.unCompressedSize = br.ReadUInt32();
             this.imageType = (PSPDIBType)br.ReadUInt16();
 
-            long dif = (long)this.chunkSize - HeaderSize;
-            if (dif > 0)
+            long bytesToSkip = (long)this.chunkSize - HeaderSize;
+            if (bytesToSkip > 0)
             {
-                br.Position += dif;
+                br.Position += bytesToSkip;
             }
 
             this.imageData = br.ReadBytes((int)this.compressedSize);
@@ -144,10 +143,10 @@ namespace PaintShopProFiletype.PSPSections
             this.paletteSubBlock = null;
             this.channelBlocks = new ChannelSubBlock[this.channelCount];
 
-            long dif = (long)this.chunkSize - HeaderSize;
-            if (dif > 0)
+            long bytesToSkip = (long)this.chunkSize - HeaderSize;
+            if (bytesToSkip > 0)
             {
-                br.Position += dif;
+                br.Position += bytesToSkip;
             }
 
             int index = 0;
@@ -232,10 +231,10 @@ namespace PaintShopProFiletype.PSPSections
             this.blockSize = br.ReadUInt32();
             this.attrChunkCount = br.ReadUInt32();
 
-            long dif = (long)this.blockSize - HeaderSize;
-            if (dif > 0)
+            long bytesToSkip = (long)this.blockSize - HeaderSize;
+            if (bytesToSkip > 0)
             {
-                br.Position += dif;
+                br.Position += bytesToSkip;
             }
 
             this.attrChunks = new CompositeImageAttributesChunk[(int)this.attrChunkCount];

@@ -146,12 +146,14 @@ namespace PaintShopProFiletype.PSPSections
                 this.graphicContents = PSPGraphicContents.None;
             }
 
-            long minChunkSize = this.fileMajorVersion > PSPConstants.majorVersion5 ? Version6HeaderSize : Version5HeaderSize;
-            long dif = this.chunkSize - minChunkSize;
-
-            if (dif > 0 && this.fileMajorVersion > PSPConstants.majorVersion5) // skip any unknown chunks
+            if (this.fileMajorVersion > PSPConstants.majorVersion5)
             {
-                br.Position += dif;
+                long bytesToSkip = (long)this.chunkSize - Version6HeaderSize;
+
+                if (bytesToSkip > 0)
+                {
+                    br.Position += bytesToSkip;
+                }
             }
         }
 

@@ -34,10 +34,14 @@ namespace PaintShopProFiletype.PSPSections
                 this.entries[i].rgbReserved = br.ReadByte();
             }
 
-            long dif = (long)this.chunkSize - HeaderSize;
-            if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
+            if (majorVersion > PSPConstants.majorVersion5)
             {
-                br.Position += dif;
+                long bytesToSkip = (long)this.chunkSize - HeaderSize;
+
+                if (bytesToSkip > 0)
+                {
+                    br.Position += bytesToSkip;
+                }
             }
         }
     }

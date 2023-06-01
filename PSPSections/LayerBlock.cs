@@ -41,10 +41,10 @@ namespace PaintShopProFiletype.PSPSections
             this.channelCount = br.ReadUInt16();
             this.channels = new ChannelSubBlock[this.channelCount];
 
-            long dif = this.chunkSize - (br.Position - startOffset);
-            if (dif > 0L)
+            long bytesToSkip = this.chunkSize - (br.Position - startOffset);
+            if (bytesToSkip > 0L)
             {
-                br.Position += dif;
+                br.Position += bytesToSkip;
             }
 
             for (int i = 0; i < this.channelCount; i++)
@@ -205,10 +205,13 @@ namespace PaintShopProFiletype.PSPSections
                 this.v5ChannelCount = br.ReadUInt16();
             }
 
-            long dif = this.chunkSize - (br.Position - startOffset);
-            if (dif > 0)
+            if (majorVersion > PSPConstants.majorVersion5)
             {
-                br.Position += dif;
+                long bytesToSkip = this.chunkSize - (br.Position - startOffset);
+                if (bytesToSkip > 0)
+                {
+                    br.Position += bytesToSkip;
+                }
             }
         }
 

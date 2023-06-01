@@ -59,11 +59,11 @@ namespace PaintShopProFiletype.PSPSections
                 this.values.Add(new KeyValuePair<PSPExtendedDataID, byte[]>(fieldID, data));
             }
 
-            long dif = this.blockLength - (br.Position - startOffset);
+            long bytesToSkip = this.blockLength - (br.Position - startOffset);
 
-            if (dif > 0)
+            if (bytesToSkip > 0)
             {
-                br.Position += dif;
+                br.Position += bytesToSkip;
             }
         }
     }

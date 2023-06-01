@@ -35,10 +35,14 @@ namespace PaintShopProFiletype.PSPSections
             this.channelType = (PSPChannelType)br.ReadUInt16();
             this.channelData = null;
 
-            long dif = (long)this.chunkSize - Version6HeaderSize;
-            if (dif > 0 && majorVersion > PSPConstants.majorVersion5)
+            if (majorVersion > PSPConstants.majorVersion5)
             {
-                br.Position += dif;
+                long bytesToSkip = (long)this.chunkSize - Version6HeaderSize;
+
+                if (bytesToSkip > 0)
+                {
+                    br.Position += bytesToSkip;
+                }
             }
 
             if (this.compressedChannelLength > 0U)
