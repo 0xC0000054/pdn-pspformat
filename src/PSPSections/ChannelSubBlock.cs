@@ -9,6 +9,8 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using CommunityToolkit.HighPerformance;
+using CommunityToolkit.HighPerformance.Buffers;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -58,21 +60,23 @@ namespace PaintShopProFiletype.PSPSections
                         break;
                     case PSPCompression.LZ77:
 
-                        byte[] compressedData = br.ReadBytes((int)this.compressedChannelLength);
-                        this.channelData = new byte[this.uncompressedChannelLength];
-
-                        using (MemoryStream compressedStream = new MemoryStream(compressedData))
-                        using (ZLibStream decompressionStream = new ZLibStream(compressedStream, CompressionMode.Decompress))
+                        using (MemoryOwner<byte> compresedDataOwner = MemoryOwner<byte>.Allocate((int)this.compressedChannelLength))
                         {
-                            Span<byte> channelDataSpan = this.channelData;
-                            int bytesRead = 0;
+                            br.ReadExactly(compresedDataOwner.Span);
+                            this.channelData = new byte[this.uncompressedChannelLength];
 
-                            while ((bytesRead = decompressionStream.Read(channelDataSpan)) > 0)
+                            using (Stream compressedStream = compresedDataOwner.AsStream())
+                            using (ZLibStream decompressionStream = new ZLibStream(compressedStream, CompressionMode.Decompress))
                             {
-                                channelDataSpan = channelDataSpan.Slice(bytesRead);
+                                Span<byte> channelDataSpan = this.channelData;
+                                int bytesRead = 0;
+
+                                while ((bytesRead = decompressionStream.Read(channelDataSpan)) > 0)
+                                {
+                                    channelDataSpan = channelDataSpan.Slice(bytesRead);
+                                }
                             }
                         }
-
                         break;
                 }
             }

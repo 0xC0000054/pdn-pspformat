@@ -279,6 +279,31 @@ namespace PaintShopProFiletype.PSPSections
         }
 
         /// <summary>
+        /// Reads the specified number of bytes from the stream.
+        /// </summary>
+        /// <param name="buffer">The destination buffer.</param>
+        /// <exception cref="EndOfStreamException">The end of the stream has been reached.</exception>
+        /// <exception cref="ObjectDisposedException">The object has been disposed.</exception>
+        public void ReadExactly(Span<byte> buffer)
+        {
+            VerifyNotDisposed();
+
+            Span<byte> destination = buffer;
+
+            while (destination.Length > 0)
+            {
+                int bytesRead = ReadInternal(destination);
+
+                if (bytesRead == 0)
+                {
+                    throw new EndOfStreamException();
+                }
+
+                destination = destination.Slice(bytesRead);
+            }
+        }
+
+        /// <summary>
         /// Reads a 2-byte signed integer.
         /// </summary>
         /// <returns>The 2-byte signed integer.</returns>
@@ -447,6 +472,92 @@ namespace PaintShopProFiletype.PSPSections
         /// <exception cref="EndOfStreamException">The end of the stream has been reached.</exception>
         private void FillBuffer(int minBytes)
         {
+            if (!TryFillBuffer(minBytes))
+            {
+                ThrowEndOfStreamException();
+            }
+
+            static void ThrowEndOfStreamException()
+            {
+                throw new EndOfStreamException();
+            }
+        }
+
+        /// <summary>
+        /// Reads the specified number of bytes from the stream.
+        /// </summary>
+        /// <param name="destination">The span.</param>
+        /// <returns>The number of bytes read from the stream.</returns>
+        private int ReadInternal(Span<byte> destination)
+        {
+            int count = destination.Length;
+
+            if (count == 0)
+            {
+                return 0;
+            }
+
+            if ((this.readOffset + count) <= this.readLength)
+            {
+                new ReadOnlySpan<byte>(this.buffer, this.readOffset, count).CopyTo(destination);
+                this.readOffset += count;
+
+                return count;
+            }
+            else
+            {
+                int totalBytesRead;
+
+                if (count < this.bufferSize)
+                {
+                    // This is an optimization for sequentially reading small ranges of bytes
+                    // from a file.
+                    // For example, a file signature that will be followed by other header data.
+                    //
+                    // TryFillBuffer may return fewer bytes than were requested if the end of the
+                    // stream has been reached.
+                    totalBytesRead = TryFillBuffer(count) ? count : this.readLength;
+
+                    if (totalBytesRead > 0)
+                    {
+                        new ReadOnlySpan<byte>(this.buffer, this.readOffset, totalBytesRead).CopyTo(destination.Slice(0, totalBytesRead));
+
+                        this.readOffset += totalBytesRead;
+                    }
+                }
+                else
+                {
+                    // Ensure that any bytes at the end of the current buffer are included.
+                    int bytesUnread = this.readLength - this.readOffset;
+
+                    if (bytesUnread > 0)
+                    {
+                        new ReadOnlySpan<byte>(this.buffer, this.readOffset, bytesUnread).CopyTo(destination);
+                    }
+
+                    totalBytesRead = bytesUnread;
+                    int bytesRemaining = count - bytesUnread;
+
+                    // Invalidate the existing buffer.
+                    this.readOffset = 0;
+                    this.readLength = 0;
+
+                    totalBytesRead += this.stream.Read(destination.Slice(bytesUnread, bytesRemaining));
+                }
+
+                return totalBytesRead;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to fill the buffer with at least the number of bytes requested.
+        /// </summary>
+        /// <param name="minBytes">The minimum number of bytes to place in the buffer.</param>
+        /// <returns>
+        /// <see langword="true"/> if the buffer contains at least <paramref name="minBytes"/>; otherwise, <see langword="false"/>.
+        /// </returns>
+        private bool TryFillBuffer(int minBytes)
+        {
             int bytesUnread = this.readLength - this.readOffset;
 
             if (bytesUnread > 0)
@@ -454,24 +565,22 @@ namespace PaintShopProFiletype.PSPSections
                 Buffer.BlockCopy(this.buffer, this.readOffset, this.buffer, 0, bytesUnread);
             }
 
-            int numBytesToRead = this.bufferSize - bytesUnread;
-            int numBytesRead = bytesUnread;
+            this.readOffset = 0;
+            this.readLength = bytesUnread;
             do
             {
-                int n = this.stream.Read(this.buffer, numBytesRead, numBytesToRead);
+                int bytesRead = this.stream.Read(this.buffer, this.readLength, this.bufferSize - this.readLength);
 
-                if (n == 0)
+                if (bytesRead == 0)
                 {
-                    throw new EndOfStreamException();
+                    return false;
                 }
 
-                numBytesRead += n;
-                numBytesToRead -= n;
+                this.readLength += bytesRead;
 
-            } while (numBytesRead < minBytes);
+            } while (this.readLength < minBytes);
 
-            this.readOffset = 0;
-            this.readLength = numBytesRead;
+            return true;
         }
 
         private void VerifyNotDisposed()

@@ -19,6 +19,8 @@
 // .                                                                           //
 /////////////////////////////////////////////////////////////////////////////////
 
+using CommunityToolkit.HighPerformance;
+using CommunityToolkit.HighPerformance.Buffers;
 using System;
 using System.Drawing;
 using System.IO;
@@ -600,13 +602,13 @@ namespace PaintShopProFiletype
                             break;
                         case PSPCompression.LZ77:
 
-                            using (MemoryStream ms = new MemoryStream())
+                            using (ArrayPoolBufferWriter<byte> bufferWriter = new ArrayPoolBufferWriter<byte>())
                             {
-                                using (ZLibStream zs = new ZLibStream(ms, CompressionLevel.SmallestSize, true))
+                                using (ZLibStream zs = new ZLibStream(bufferWriter.AsStream(), CompressionLevel.SmallestSize, true))
                                 {
                                     zs.Write(inData, 0, inData.Length);
                                 }
-                                compBuffer = ms.ToArray();
+                                compBuffer = bufferWriter.WrittenSpan.ToArray();
                             }
                             break;
                     }
