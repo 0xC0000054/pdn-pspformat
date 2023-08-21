@@ -28,10 +28,7 @@ namespace PaintShopProFiletype.PSPSections
             this.entries = new RGBQUAD[this.entriesCount];
             for (int i = 0; i < this.entriesCount; i++)
             {
-                this.entries[i].red = br.ReadByte();
-                this.entries[i].green = br.ReadByte();
-                this.entries[i].blue = br.ReadByte();
-                this.entries[i].reserved = br.ReadByte();
+                this.entries[i] = new RGBQUAD(br);
             }
 
             if (majorVersion > PSPConstants.majorVersion5)

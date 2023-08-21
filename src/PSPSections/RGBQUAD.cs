@@ -11,14 +11,22 @@
 
 using System.Runtime.InteropServices;
 
-namespace PaintShopProFiletype
+namespace PaintShopProFiletype.PSPSections
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct RGBQUAD
+    internal readonly struct RGBQUAD
     {
-        public byte red;
-        public byte green;
-        public byte blue;
-        public byte reserved;
+        public readonly byte red;
+        public readonly byte green;
+        public readonly byte blue;
+        public readonly byte reserved;
+
+        public RGBQUAD(BufferedBinaryReader reader)
+        {
+            this.red = reader.ReadByte();
+            this.green = reader.ReadByte();
+            this.blue = reader.ReadByte();
+            this.reserved = reader.ReadByte();
+        }
     }
 }
