@@ -99,10 +99,15 @@ namespace PaintShopProFiletype.PSPSections
 
         public string Description => this.description;
 
-        public void Save(BinaryWriter writer)
+        public void Save(BinaryWriter writer, ushort majorVersion)
         {
             writer.Write(PSPConstants.blockIdentifier);
             writer.Write((ushort)PSPBlockID.Creator);
+
+            if (majorVersion <= PSPConstants.majorVersion5)
+            {
+                writer.Write(0U); // Initial data chunk length, always 0.
+            }
 
             using (new PSPUtil.BlockLengthWriter(writer))
             {

@@ -784,7 +784,7 @@ namespace PaintShopProFiletype
                 writer.Write(PSPFileSig);
                 this.fileHeader.Save(writer);
                 this.imageAttributes.Save(writer);
-                this.creator.Save(writer);
+                this.creator.Save(writer, majorVersion);
                 if (this.compImage != null)
                 {
                     this.compImage.Save(writer);
