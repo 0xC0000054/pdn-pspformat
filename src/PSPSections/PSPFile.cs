@@ -22,6 +22,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Runtime.CompilerServices;
 using Ionic.Zlib;
 using PaintDotNet;
 using PaintDotNet.Rendering;
@@ -31,7 +32,7 @@ namespace PaintShopProFiletype
 {
     internal sealed class PSPFile
     {
-        private static byte[] PSPFileSig = new byte[32]
+        private static ReadOnlySpan<byte> PSPFileSig => new byte[32]
         { 0x50, 0x61, 0x69, 0x6E, 0x74, 0x20, 0x53, 0x68, 0x6F, 0x70, 0x20, 0x50,
         0x72, 0x6F, 0x20, 0x49, 0x6D, 0x61, 0x67, 0x65, 0x20, 0x46, 0x69, 0x6C, 0x65, 0x0A,
         0x1A, 0x00, 0x00, 0x00, 0x00, 0x00}; // "Paint Shop Pro Image File\n\x1a” padded to 32 bytes
@@ -57,19 +58,17 @@ namespace PaintShopProFiletype
             this.v5Thumbnail = null;
         }
 
-        private static bool CheckSig(byte[] sig)
+        [SkipLocalsInit]
+        private static bool CheckFileSignature(Stream input)
         {
+            Span<byte> signature = stackalloc byte[32];
+
+            input.ReadExactly(signature);
+
             // Some writers may not write zeros for the signature padding, so we only check the first 27 bytes of the signature.
+            const int SignatureCheckLength = 27;
 
-            for (int i = 0; i < 27; i++)
-            {
-                if (sig[i] != PSPFileSig[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return signature.Slice(0, SignatureCheckLength).SequenceEqual(PSPFileSig.Slice(0, SignatureCheckLength));
         }
 
         private static LayerBlendMode ConvertFromPSPBlendMode(PSPBlendModes mode)
@@ -91,11 +90,7 @@ namespace PaintShopProFiletype
 
         private void LoadPSPFile(Stream input)
         {
-            byte[] sigBytes = new byte[32];
-
-            input.ReadExactly(sigBytes, 0, sigBytes.Length);
-
-            if (!CheckSig(sigBytes))
+            if (!CheckFileSignature(input))
             {
                 throw new FormatException(Properties.Resources.InvalidPSPFile);
             }
