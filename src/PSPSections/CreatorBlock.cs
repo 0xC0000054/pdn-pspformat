@@ -10,14 +10,20 @@
 ////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
 namespace PaintShopProFiletype.PSPSections
 {
     [Serializable]
-    internal sealed class CreatorBlock
+    [DebuggerTypeProxy(typeof(DebugView))]
+    internal sealed partial class CreatorBlock
     {
+        private static readonly DateTime UnixEpochLocal = new DateTime(1970, 1, 1).ToLocalTime();
+
+        // These field are required for compatibility with binary serialization.
+#pragma warning disable IDE0044 // Add readonly modifier
         private string title;
         private uint createDate;
         [NonSerialized]
@@ -25,36 +31,7 @@ namespace PaintShopProFiletype.PSPSections
         private string artist;
         private string copyRight;
         private string description;
-
-        private static readonly DateTime UnixEpochLocal = new DateTime(1970, 1, 1).ToLocalTime();
-        /// <summary>
-        /// Gets the current date and time in Unix format (the number of seconds from 1/1/1970)
-        /// </summary>
-        /// <returns>The current date and time in Unix format</returns>
-        private static uint GetCurrentUnixTimestamp()
-        {
-            TimeSpan t = (DateTime.Now - UnixEpochLocal);
-
-            return (uint)t.TotalSeconds;
-        }
-
-#if DEBUG
-        public DateTime CreateDate
-        {
-            get
-            {
-                return UnixEpochLocal.AddSeconds(this.createDate);
-            }
-        }
-
-        public DateTime ModDate
-        {
-            get
-            {
-                return UnixEpochLocal.AddSeconds(this.modDate);
-            }
-        }
-#endif
+#pragma warning restore IDE0044 // Add readonly modifier
 
         public CreatorBlock()
         {
@@ -110,24 +87,17 @@ namespace PaintShopProFiletype.PSPSections
             }
         }
 
-        private static void WriteASCIIField(BinaryWriter writer, PSPCreatorFieldID field, string value)
-        {
-            writer.Write(PSPConstants.fieldIdentifier);
-            writer.Write((ushort)field);
+        public string Title => this.title;
 
-            byte[] bytes = Encoding.ASCII.GetBytes(value);
+        public uint CreateDate => this.createDate;
 
-            writer.Write((uint)bytes.Length);
-            writer.Write(bytes);
-        }
+        public uint ModDate => this.modDate;
 
-        private static void WriteUInt32Field(BinaryWriter writer, PSPCreatorFieldID field, uint value)
-        {
-            writer.Write(PSPConstants.fieldIdentifier);
-            writer.Write((ushort)field);
-            writer.Write(sizeof(uint));
-            writer.Write(value);
-        }
+        public string Artist => this.artist;
+
+        public string CopyRight => this.copyRight;
+
+        public string Description => this.description;
 
         public void Save(BinaryWriter writer)
         {
@@ -163,6 +133,36 @@ namespace PaintShopProFiletype.PSPSections
                     WriteASCIIField(writer, PSPCreatorFieldID.Description, this.description);
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the current date and time in Unix format (the number of seconds from 1/1/1970)
+        /// </summary>
+        /// <returns>The current date and time in Unix format</returns>
+        private static uint GetCurrentUnixTimestamp()
+        {
+            TimeSpan t = (DateTime.Now - UnixEpochLocal);
+
+            return (uint)t.TotalSeconds;
+        }
+
+        private static void WriteASCIIField(BinaryWriter writer, PSPCreatorFieldID field, string value)
+        {
+            writer.Write(PSPConstants.fieldIdentifier);
+            writer.Write((ushort)field);
+
+            byte[] bytes = Encoding.ASCII.GetBytes(value);
+
+            writer.Write((uint)bytes.Length);
+            writer.Write(bytes);
+        }
+
+        private static void WriteUInt32Field(BinaryWriter writer, PSPCreatorFieldID field, uint value)
+        {
+            writer.Write(PSPConstants.fieldIdentifier);
+            writer.Write((ushort)field);
+            writer.Write(sizeof(uint));
+            writer.Write(value);
         }
     }
 }

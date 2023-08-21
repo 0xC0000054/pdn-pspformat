@@ -1,4 +1,5 @@
 config
+deserialize
 dest
 endianess
 exif
