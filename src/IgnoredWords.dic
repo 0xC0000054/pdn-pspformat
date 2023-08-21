@@ -16,4 +16,5 @@ pspformat
 ptr
 rect
 rgb
+RGBQUAD
 src
