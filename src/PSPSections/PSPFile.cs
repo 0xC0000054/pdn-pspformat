@@ -321,7 +321,7 @@ namespace PaintShopProFiletype
                     unsafe
                     {
                         int palIdx = 0;
-                        NativeStructs.RGBQUAD entry;
+                        RGBQUAD entry;
 
                         Surface surface = layer.Surface;
                         for (int y = saveRect.Top; y < saveRect.Bottom; y++)
@@ -404,9 +404,9 @@ namespace PaintShopProFiletype
                                             switch (ch.bitmapType)
                                             {
                                                 case PSPDIBType.Image:
-                                                    ptr->R = entry.rgbRed;
-                                                    ptr->G = entry.rgbGreen;
-                                                    ptr->B = entry.rgbBlue;
+                                                    ptr->R = entry.red;
+                                                    ptr->G = entry.green;
+                                                    ptr->B = entry.blue;
 
                                                     if (palIdx == transIndex)
                                                     {
@@ -415,7 +415,7 @@ namespace PaintShopProFiletype
 
                                                     break;
                                                 case PSPDIBType.TransparencyMask:
-                                                    ptr->A = entry.rgbRed;
+                                                    ptr->A = entry.red;
                                                     break;
                                             }
                                         }
@@ -427,9 +427,9 @@ namespace PaintShopProFiletype
                                         palIdx = expandedPalette[index];
                                         entry = this.globalPalette.entries[palIdx];
 
-                                        ptr->R = entry.rgbRed;
-                                        ptr->G = entry.rgbGreen;
-                                        ptr->B = entry.rgbBlue;
+                                        ptr->R = entry.red;
+                                        ptr->G = entry.green;
+                                        ptr->B = entry.blue;
 
                                         if (palIdx == transIndex)
                                         {

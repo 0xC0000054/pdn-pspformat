@@ -13,15 +13,12 @@ using System.Runtime.InteropServices;
 
 namespace PaintShopProFiletype
 {
-    internal static class NativeStructs
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct RGBQUAD
     {
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct RGBQUAD
-        {
-            public byte rgbBlue;
-            public byte rgbGreen;
-            public byte rgbRed;
-            public byte rgbReserved;
-        }
+        public byte red;
+        public byte green;
+        public byte blue;
+        public byte reserved;
     }
 }
