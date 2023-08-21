@@ -9,8 +9,9 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.IO;
-using Ionic.Zlib;
+using System.IO.Compression;
 
 namespace PaintShopProFiletype.PSPSections
 {
@@ -60,22 +61,16 @@ namespace PaintShopProFiletype.PSPSections
                         byte[] compressedData = br.ReadBytes((int)this.compressedChannelLength);
                         this.channelData = new byte[this.uncompressedChannelLength];
 
-                        ZlibCodec codec = new ZlibCodec
+                        using (MemoryStream compressedStream = new MemoryStream(compressedData))
+                        using (ZLibStream decompressionStream = new ZLibStream(compressedStream, CompressionMode.Decompress))
                         {
-                            AvailableBytesIn = (int)this.compressedChannelLength,
-                            AvailableBytesOut = (int)this.uncompressedChannelLength,
-                            InputBuffer = compressedData,
-                            OutputBuffer = this.channelData
-                        };
-                        codec.InitializeInflate();
+                            Span<byte> channelDataSpan = this.channelData;
+                            int bytesRead = 0;
 
-                        int status = codec.Inflate(FlushType.Finish);
-
-                        codec.EndInflate();
-
-                        if (status != ZlibConstants.Z_OK && status != ZlibConstants.Z_STREAM_END)
-                        {
-                            throw new ZlibException(codec.Message);
+                            while ((bytesRead = decompressionStream.Read(channelDataSpan)) > 0)
+                            {
+                                channelDataSpan = channelDataSpan.Slice(bytesRead);
+                            }
                         }
 
                         break;

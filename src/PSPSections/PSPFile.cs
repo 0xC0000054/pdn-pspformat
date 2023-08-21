@@ -22,8 +22,8 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
-using Ionic.Zlib;
 using PaintDotNet;
 using PaintDotNet.Rendering;
 using PaintShopProFiletype.PSPSections;
@@ -602,22 +602,9 @@ namespace PaintShopProFiletype
 
                             using (MemoryStream ms = new MemoryStream())
                             {
-                                using (ZlibStream zs = new ZlibStream(ms, CompressionMode.Compress, CompressionLevel.Level9, true))
+                                using (ZLibStream zs = new ZLibStream(ms, CompressionLevel.SmallestSize, true))
                                 {
-                                    int length = inData.Length;
-                                    int offset = 0;
-
-                                    do
-                                    {
-                                        int chunkSize = Math.Min(ZlibConstants.WorkingBufferSizeDefault, length);
-
-                                        zs.Write(inData, offset, chunkSize);
-
-                                        offset += chunkSize;
-                                        length -= chunkSize;
-
-                                    } while (length > 0);
-
+                                    zs.Write(inData, 0, inData.Length);
                                 }
                                 compBuffer = ms.ToArray();
                             }
