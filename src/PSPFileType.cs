@@ -18,7 +18,7 @@ using PaintShopProFiletype.Properties;
 
 namespace PaintShopProFiletype
 {
-    [PaintDotNet.PluginSupportInfo(typeof(PluginSupportInfo))]
+    [PluginSupportInfo(typeof(PluginSupportInfo))]
     public sealed class PaintShopProFormat : PropertyBasedFileType, IFileTypeFactory
     {
         private static readonly string[] FileExtensions = new string[] { ".psp", ".pspimage", ".pspbrush", ".jfr", ".pspframe", ".pspmask", ".tub", ".psptube" };
@@ -49,8 +49,8 @@ namespace PaintShopProFiletype
         {
             List<Property> properties = new List<Property>()
             {
-                StaticListChoiceProperty.CreateForEnum<FileVersion>(PropertyNames.FileVersion, FileVersion.Version6, false),
-                StaticListChoiceProperty.CreateForEnum<CompressionFormats>(PropertyNames.CompressionType, CompressionFormats.LZ77, false)
+                StaticListChoiceProperty.CreateForEnum(PropertyNames.FileVersion, FileVersion.Version6, false),
+                StaticListChoiceProperty.CreateForEnum(PropertyNames.CompressionType, CompressionFormats.LZ77, false)
             };
 
             return new PropertyCollection(properties);

@@ -9,26 +9,19 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using System.Runtime.InteropServices;
+
 namespace PaintShopProFiletype
 {
     internal static class NativeStructs
     {
-        [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential)]
         internal struct RGBQUAD
         {
-
-            /// BYTE->unsigned char
             public byte rgbBlue;
-
-            /// BYTE->unsigned char
             public byte rgbGreen;
-
-            /// BYTE->unsigned char
             public byte rgbRed;
-
-            /// BYTE->unsigned char
             public byte rgbReserved;
         }
-
     }
 }
