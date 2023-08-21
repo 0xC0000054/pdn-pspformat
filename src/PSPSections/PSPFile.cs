@@ -27,6 +27,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using PaintDotNet;
+using PaintDotNet.Imaging;
 using PaintDotNet.Rendering;
 using PaintShopProFiletype.PSPSections;
 
@@ -549,79 +550,67 @@ namespace PaintShopProFiletype
 
             if (channelSize > 0)
             {
-                byte[] red = new byte[channelSize];
-                byte[] green = new byte[channelSize];
-                byte[] blue = new byte[channelSize];
-                byte[] alpha = channelCount == 4 ? new byte[channelSize] : null;
+                RegionPtr<ColorBgra32> sourceRegion = source.AsRegionPtr().Slice(savedBounds).Cast<ColorBgra32>();
 
-                for (int y = savedBounds.Top; y < savedBounds.Bottom; y++)
+                using (SpanOwner<byte> uncompressedDataOwner = SpanOwner<byte>.Allocate(channelSize))
                 {
-                    ColorBgra* p = source.GetPointPointerUnchecked(savedBounds.Left, y);
-                    int index = ((y - savedBounds.Top) * savedBounds.Width);
-                    for (int x = savedBounds.Left; x < savedBounds.Right; x++)
+                    Span<byte> uncompresedData = uncompressedDataOwner.Span;
+
+                    fixed (byte* buffer = uncompresedData)
                     {
-                        red[index] = p->R;
-                        green[index] = p->G;
-                        blue[index] = p->B;
-                        if (channelCount == 4)
+                        RegionPtr<byte> targetRegion = new RegionPtr<byte>(buffer, savedBounds.Size, savedBounds.Width);
+
+                        for (int channelIndex = 0; channelIndex < channelCount; channelIndex++)
                         {
-                            alpha[index] = p->A;
-                        }
-                        p++;
-                        index++;
-                    }
-                }
+                            int sourceIndex = channelIndex;
 
-                for (int channelIndex = 0; channelIndex < channelCount; channelIndex++)
-                {
-                    byte[] inData = null;
-
-                    switch (channelIndex)
-                    {
-                        case 0:
-                            inData = red;
-                            break;
-                        case 1:
-                            inData = green;
-                            break;
-                        case 2:
-                            inData = blue;
-                            break;
-                        case 3:
-                            inData = alpha;
-                            break;
-                    }
-
-                    byte[] compBuffer = null;
-
-                    switch (this.imageAttributes.CompressionType)
-                    {
-                        case PSPCompression.None:
-                            compBuffer = inData;
-                            channels[channelIndex].uncompressedChannelLength = 0;
-                            break;
-                        case PSPCompression.LZ77:
-
-                            using (ArrayPoolBufferWriter<byte> bufferWriter = new ArrayPoolBufferWriter<byte>())
+                            // Map BGRA to RGBA
+                            switch (channelIndex)
                             {
-                                using (ZLibStream zs = new ZLibStream(bufferWriter.AsStream(), CompressionLevel.SmallestSize, true))
-                                {
-                                    zs.Write(inData, 0, inData.Length);
-                                }
-                                compBuffer = bufferWriter.WrittenSpan.ToArray();
+                                case 0:
+                                    sourceIndex = 2;
+                                    break;
+                                case 2:
+                                    sourceIndex = 0;
+                                    break;
                             }
-                            break;
+
+                            PixelKernels.ExtractChannel(targetRegion, sourceRegion, sourceIndex);
+
+                            ChannelSubBlock channel = channels[channelIndex];
+
+                            switch (this.imageAttributes.CompressionType)
+                            {
+                                case PSPCompression.None:
+                                    channel.compressedChannelLength = (uint)channelSize;
+                                    channel.uncompressedChannelLength = 0;
+                                    channel.channelData = uncompresedData.ToArray();
+                                    break;
+                                case PSPCompression.LZ77:
+
+                                    using (ArrayPoolBufferWriter<byte> bufferWriter = new ArrayPoolBufferWriter<byte>())
+                                    {
+                                        using (ZLibStream zs = new ZLibStream(bufferWriter.AsStream(), CompressionLevel.SmallestSize, true))
+                                        {
+                                            zs.Write(uncompresedData);
+                                        }
+
+                                        ReadOnlySpan<byte> compressedData = bufferWriter.WrittenSpan;
+                                        channel.compressedChannelLength = (uint)compressedData.Length;
+                                        channel.uncompressedChannelLength = (uint)channelSize;
+                                        channel.channelData = compressedData.ToArray();
+                                    }
+                                    break;
+                            }
+
+                            if (callback != null)
+                            {
+                                this.doneProgress++;
+
+                                callback(this, new ProgressEventArgs(100.0 * ((double)this.doneProgress / this.totalProgress)));
+                            }
+                        }
                     }
-
-                    if (callback != null)
-                    {
-                        this.doneProgress++;
-
-                        callback(this, new ProgressEventArgs(100.0 * ((double)this.doneProgress / this.totalProgress)));
-                    }
-
-                    channels[channelIndex].compressedChannelLength = (uint)compBuffer.Length;
-                    channels[channelIndex].channelData = compBuffer;
                 }
             }
 
