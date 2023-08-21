@@ -10,7 +10,9 @@
 ////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Buffers.Binary;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace PaintShopProFiletype.PSPSections
 {
@@ -299,11 +301,16 @@ namespace PaintShopProFiletype.PSPSections
 
             EnsureBuffer(sizeof(ushort));
 
-            ushort val = (ushort)(this.buffer[this.readOffset] | (this.buffer[this.readOffset + 1] << 8));
+            ushort value = Unsafe.ReadUnaligned<ushort>(ref this.buffer[this.readOffset]);
+
+            if (!BitConverter.IsLittleEndian)
+            {
+                value = BinaryPrimitives.ReverseEndianness(value);
+            }
 
             this.readOffset += sizeof(ushort);
 
-            return val;
+            return value;
         }
 
         /// <summary>
@@ -329,14 +336,16 @@ namespace PaintShopProFiletype.PSPSections
 
             EnsureBuffer(sizeof(uint));
 
-            uint val = (uint)(this.buffer[this.readOffset]
-                              | (this.buffer[this.readOffset + 1] << 8)
-                              | (this.buffer[this.readOffset + 2] << 16)
-                              | (this.buffer[this.readOffset + 3] << 24));
+            uint value = Unsafe.ReadUnaligned<uint>(ref this.buffer[this.readOffset]);
+
+            if (!BitConverter.IsLittleEndian)
+            {
+                value = BinaryPrimitives.ReverseEndianness(value);
+            }
 
             this.readOffset += sizeof(uint);
 
-            return val;
+            return value;
         }
 
         /// <summary>
@@ -375,19 +384,16 @@ namespace PaintShopProFiletype.PSPSections
 
             EnsureBuffer(sizeof(ulong));
 
-            uint lo = (uint)(this.buffer[this.readOffset]
-                             | (this.buffer[this.readOffset + 1] << 8)
-                             | (this.buffer[this.readOffset + 2] << 16)
-                             | (this.buffer[this.readOffset + 3] << 24));
+            ulong value = Unsafe.ReadUnaligned<ulong>(ref this.buffer[this.readOffset]);
 
-            uint hi = (uint)(this.buffer[this.readOffset + 4]
-                             | (this.buffer[this.readOffset + 5] << 8)
-                             | (this.buffer[this.readOffset + 6] << 16)
-                             | (this.buffer[this.readOffset + 7] << 24));
+            if (!BitConverter.IsLittleEndian)
+            {
+                value = BinaryPrimitives.ReverseEndianness(value);
+            }
 
             this.readOffset += sizeof(ulong);
 
-            return (((ulong)hi) << 32) | lo;
+            return value;
         }
 
         /// <summary>
