@@ -14,6 +14,9 @@ indent_style                                          = space
 indent_size                                           = 4
 trim_trailing_whitespace                              = true
 
+# IDE0090: Simplify 'new' expression
+csharp_style_implicit_object_creation_when_type_is_apparent = false
+
 # Newline settings
 csharp_new_line_before_open_brace                     = all
 csharp_new_line_before_else                           = true
