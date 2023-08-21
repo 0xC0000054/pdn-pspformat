@@ -21,10 +21,16 @@ namespace PaintShopProFiletype
     [PaintDotNet.PluginSupportInfo(typeof(PluginSupportInfo))]
     public sealed class PaintShopProFormat : PropertyBasedFileType, IFileTypeFactory
     {
+        private static readonly string[] FileExtensions = new string[] { ".psp", ".pspimage", ".pspbrush", ".jfr", ".pspframe", ".pspmask", ".tub", ".psptube" };
+
         public PaintShopProFormat() : base(
             "Paint Shop Pro",
-            FileTypeFlags.SupportsLayers | FileTypeFlags.SupportsLoading | FileTypeFlags.SupportsSaving | FileTypeFlags.SavesWithProgress,
-            new string[] {".psp", ".pspimage", ".pspbrush", ".jfr", ".pspframe", ".pspmask",  ".tub", ".psptube" })
+            new FileTypeOptions()
+            {
+                SupportsLayers = true,
+                LoadExtensions = FileExtensions,
+                SaveExtensions = FileExtensions,
+            })
         {
         }
 
@@ -37,11 +43,6 @@ namespace PaintShopProFiletype
         {
             PSPFile file = new PSPFile();
             return file.Load(input);
-        }
-
-        protected override bool IsReflexive(PropertyBasedSaveConfigToken token)
-        {
-            return true;
         }
 
         public override PropertyCollection OnCreateSavePropertyCollection()

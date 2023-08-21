@@ -141,7 +141,7 @@ namespace PaintShopProFiletype.PSPSections
         {
             bool fPixelFound = false;
 
-            ColorBgra* rowStart = surface.GetRowAddress(y);
+            ColorBgra* rowStart = surface.GetRowPointer(y);
             ColorBgra* pixel = rowStart + xStart;
             for (int x = xStart; x < xEnd; x++)
             {

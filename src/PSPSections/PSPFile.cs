@@ -25,7 +25,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using Ionic.Zlib;
 using PaintDotNet;
-using PaintDotNet.IO;
+using PaintDotNet.Rendering;
 using PaintShopProFiletype.PSPSections;
 
 namespace PaintShopProFiletype
@@ -64,7 +64,9 @@ namespace PaintShopProFiletype
         {
             using (MemoryStream stream = new MemoryStream())
             {
+#pragma warning disable SYSLIB0011
                 new BinaryFormatter().Serialize(stream, data);
+#pragma warning restore SYSLIB0011
 
                 return Convert.ToBase64String(stream.ToArray());
             }
@@ -87,8 +89,10 @@ namespace PaintShopProFiletype
 
             using (MemoryStream stream = new MemoryStream(bytes))
             {
+#pragma warning disable SYSLIB0011
                 BinaryFormatter formatter = new BinaryFormatter() { Binder = new SelfBinder() };
                 return (T)formatter.Deserialize(stream);
+#pragma warning restore SYSLIB0011
             }
         }
 
@@ -107,38 +111,28 @@ namespace PaintShopProFiletype
             return true;
         }
 
-        private static UserBlendOp BlendModetoBlendOp(PSPBlendModes mode)
+        private static LayerBlendMode ConvertFromPSPBlendMode(PSPBlendModes mode)
         {
-            switch (mode)
+            return mode switch
             {
-                case PSPBlendModes.Normal:
-                    return new UserBlendOps.NormalBlendOp();
-                case PSPBlendModes.Darken:
-                    return new UserBlendOps.DarkenBlendOp();
-                case PSPBlendModes.Lighten:
-                    return new UserBlendOps.LightenBlendOp();
-                case PSPBlendModes.Multiply:
-                    return new UserBlendOps.MultiplyBlendOp();
-                case PSPBlendModes.Screen:
-                    return new UserBlendOps.ScreenBlendOp();
-                case PSPBlendModes.Overlay:
-                    return new UserBlendOps.OverlayBlendOp();
-                case PSPBlendModes.Difference:
-                    return new UserBlendOps.DifferenceBlendOp();
-                case PSPBlendModes.Dodge:
-                    return new UserBlendOps.ColorDodgeBlendOp();
-                case PSPBlendModes.Burn:
-                    return new UserBlendOps.ColorBurnBlendOp();
-                default:
-                    return new UserBlendOps.NormalBlendOp();
-            }
+                PSPBlendModes.Normal => LayerBlendMode.Normal,
+                PSPBlendModes.Darken => LayerBlendMode.Darken,
+                PSPBlendModes.Lighten => LayerBlendMode.Lighten,
+                PSPBlendModes.Multiply => LayerBlendMode.Multiply,
+                PSPBlendModes.Screen => LayerBlendMode.Screen,
+                PSPBlendModes.Overlay => LayerBlendMode.Overlay,
+                PSPBlendModes.Difference => LayerBlendMode.Difference,
+                PSPBlendModes.Dodge => LayerBlendMode.ColorDodge,
+                PSPBlendModes.Burn => LayerBlendMode.ColorBurn,
+                _ => LayerBlendMode.Normal,
+            };
         }
 
         private void LoadPSPFile(Stream input)
         {
             byte[] sigBytes = new byte[32];
 
-            input.ProperRead(sigBytes, 0, sigBytes.Length);
+            input.ReadExactly(sigBytes, 0, sigBytes.Length);
 
             if (!CheckSig(sigBytes))
             {
@@ -320,16 +314,19 @@ namespace PaintShopProFiletype
                 transIndex = this.extData.TryGetTransparencyIndex();
             }
 
-            LayerBitmapInfoChunk[] bitmapInfoChunks =  this.layerBlock.LayerBitmapInfo;
+            LayerBitmapInfoChunk[] bitmapInfoChunks = this.layerBlock.LayerBitmapInfo;
 
             for (int i = 0; i < layerCount; i++)
             {
                 LayerInfoChunk info = infoChunks[i];
 
-                BitmapLayer layer = new BitmapLayer(doc.Width, doc.Height) { Name = info.name, Opacity = info.opacity };
-                UserBlendOp blendOp = BlendModetoBlendOp(info.blendMode);
-                layer.SetBlendOp(blendOp);
-                layer.Visible = (info.layerFlags & PSPLayerProperties.Visible) == PSPLayerProperties.Visible;
+                BitmapLayer layer = new BitmapLayer(doc.Width, doc.Height)
+                {
+                    Name = info.name,
+                    Opacity = info.opacity,
+                    BlendMode = ConvertFromPSPBlendMode(info.blendMode),
+                    Visible = (info.layerFlags & PSPLayerProperties.Visible) == PSPLayerProperties.Visible
+                };
 
                 Rectangle saveRect = info.saveRect;
 
@@ -370,7 +367,7 @@ namespace PaintShopProFiletype
                         Surface surface = layer.Surface;
                         for (int y = saveRect.Top; y < saveRect.Bottom; y++)
                         {
-                            ColorBgra* ptr = surface.GetPointAddressUnchecked(saveRect.Left, y);
+                            ColorBgra* ptr = surface.GetPointPointerUnchecked(saveRect.Left, y);
                             ColorBgra* endPtr = ptr + saveRect.Width;
                             int index = ((y - saveRect.Top) * stride);
 
@@ -511,48 +508,21 @@ namespace PaintShopProFiletype
             return doc;
         }
 
-        private static PSPBlendModes BlendOptoBlendMode(UserBlendOp op)
+        private static PSPBlendModes ConvertToPSPBlendMode(LayerBlendMode blendMode)
         {
-            Type opType = op.GetType();
-
-            if (opType == typeof(UserBlendOps.NormalBlendOp))
+            return blendMode switch
             {
-                return PSPBlendModes.Normal;
-            }
-            else if (opType == typeof(UserBlendOps.ColorBurnBlendOp))
-            {
-                return PSPBlendModes.Burn;
-            }
-            else if (opType == typeof(UserBlendOps.ColorDodgeBlendOp))
-            {
-                return PSPBlendModes.Dodge;
-            }
-            else if (opType == typeof(UserBlendOps.DarkenBlendOp))
-            {
-                return PSPBlendModes.Darken;
-            }
-            else if (opType == typeof(UserBlendOps.DifferenceBlendOp))
-            {
-                return PSPBlendModes.Difference;
-            }
-            else if (opType == typeof(UserBlendOps.LightenBlendOp))
-            {
-                return PSPBlendModes.Lighten;
-            }
-            else if (opType == typeof(UserBlendOps.MultiplyBlendOp))
-            {
-                return PSPBlendModes.Multiply;
-            }
-            else if (opType == typeof(UserBlendOps.OverlayBlendOp))
-            {
-                return PSPBlendModes.Overlay;
-            }
-            else if (opType == typeof(UserBlendOps.ScreenBlendOp))
-            {
-                return PSPBlendModes.Screen;
-            }
-
-            return PSPBlendModes.Normal;
+                LayerBlendMode.Normal => PSPBlendModes.Normal,
+                LayerBlendMode.Multiply => PSPBlendModes.Multiply,
+                LayerBlendMode.ColorBurn => PSPBlendModes.Burn,
+                LayerBlendMode.ColorDodge => PSPBlendModes.Dodge,
+                LayerBlendMode.Overlay => PSPBlendModes.Overlay,
+                LayerBlendMode.Difference => PSPBlendModes.Difference,
+                LayerBlendMode.Lighten => PSPBlendModes.Lighten,
+                LayerBlendMode.Darken => PSPBlendModes.Darken,
+                LayerBlendMode.Screen => PSPBlendModes.Screen,
+                _ => PSPBlendModes.Normal,
+            };
         }
 
         private static PSPCompression CompressionFromTokenFormat(CompressionFormats format)
@@ -629,7 +599,7 @@ namespace PaintShopProFiletype
 
                 for (int y = savedBounds.Top; y < savedBounds.Bottom; y++)
                 {
-                    ColorBgra* p = source.GetPointAddressUnchecked(savedBounds.Left, y);
+                    ColorBgra* p = source.GetPointPointerUnchecked(savedBounds.Left, y);
                     int index = ((y - savedBounds.Top) * savedBounds.Width);
                     for (int x = savedBounds.Left; x < savedBounds.Right; x++)
                     {
@@ -733,7 +703,7 @@ namespace PaintShopProFiletype
             {
                 int longSide = Math.Min(originalHeight, maxEdgeLength);
                 thumbSize.Width = Math.Max(1, (originalWidth * longSide) / originalHeight);
-                thumbSize.Height= longSide;
+                thumbSize.Height = longSide;
             }
             else
             {
@@ -749,7 +719,7 @@ namespace PaintShopProFiletype
         {
             for (int y = bounds.Top; y < bounds.Bottom; y++)
             {
-                ColorBgra* startPtr = surface.GetPointAddressUnchecked(bounds.Left, y);
+                ColorBgra* startPtr = surface.GetPointPointerUnchecked(bounds.Left, y);
                 ColorBgra* endPtr = startPtr + bounds.Width;
 
                 while (startPtr < endPtr)
@@ -849,7 +819,7 @@ namespace PaintShopProFiletype
 
                     Rectangle savedBounds = PSPUtil.GetImageSaveRectangle(layer.Surface);
 
-                    LayerInfoChunk infoChunk = new LayerInfoChunk(layer, BlendOptoBlendMode(layer.BlendOp), savedBounds, majorVersion);
+                    LayerInfoChunk infoChunk = new LayerInfoChunk(layer, ConvertToPSPBlendMode(layer.BlendMode), savedBounds, majorVersion);
 
                     int channelCount = 3;
                     int bitmapCount = 1;
@@ -920,62 +890,60 @@ namespace PaintShopProFiletype
             JPEGCompositeInfoChunk jpgChunk = new JPEGCompositeInfoChunk();
             CompositeImageInfoChunk infoChunk = new CompositeImageInfoChunk();
 
-            using (RenderArgs args = new RenderArgs(scratchSurface))
-            {
-                input.Render(args, true);
+            scratchSurface.Fill(ColorBgra.TransparentBlack);
+            input.CreateRenderer().Render(scratchSurface);
 
-                int channelCount = 3;
-                if (LayerHasTransparency(args.Surface, args.Surface.Bounds))
-                {
-                    channelCount = 4;
-                    infoChunk.channelCount = 4;
-                    infoChunk.bitmapCount = 2;
-                }
+            int channelCount = 3;
+            if (LayerHasTransparency(scratchSurface, scratchSurface.Bounds))
+            {
+                channelCount = 4;
+                infoChunk.channelCount = 4;
+                infoChunk.bitmapCount = 2;
+            }
 #if DEBUG
-                using (Bitmap bmp = args.Surface.CreateAliasedBitmap())
-                {
-                }
+            using (Bitmap bmp = scratchSurface.CreateAliasedBitmap())
+            {
+            }
 #endif
 
-                this.totalProgress += channelCount;
+            this.totalProgress += channelCount;
 
-                infoChunk.channelBlocks = SplitImageChannels(args.Surface, args.Surface.Bounds, channelCount, majorVersion, true, callback);
+            infoChunk.channelBlocks = SplitImageChannels(scratchSurface, scratchSurface.Bounds, channelCount, majorVersion, true, callback);
 
-                using (Surface fit = new Surface(jpegThumbSize))
+            using (Surface fit = new Surface(jpegThumbSize))
+            {
+                fit.FitSurface(ResamplingAlgorithm.SuperSampling, scratchSurface);
+
+                if (channelCount == 4)
                 {
-                    fit.FitSurface(ResamplingAlgorithm.SuperSampling, args.Surface);
-
-                    if (channelCount == 4)
+                    unsafe
                     {
-                        unsafe
+                        for (int y = 0; y < jpgAttr.height; y++)
                         {
-                            for (int y = 0; y < jpgAttr.height; y++)
+                            ColorBgra* ptr = fit.GetRowPointerUnchecked(y);
+                            ColorBgra* endPtr = ptr + jpgAttr.width;
+
+                            while (ptr < endPtr)
                             {
-                                ColorBgra* ptr = fit.GetRowAddressUnchecked(y);
-                                ColorBgra* endPtr = ptr + jpgAttr.width;
-
-                                while (ptr < endPtr)
+                                if (ptr->A == 0)
                                 {
-                                    if (ptr->A == 0)
-                                    {
-                                        ptr->Bgra |= 0x00ffffff; // set the color of the transparent pixels to white, same as Paint Shop Pro
-                                    }
-
-                                    ptr++;
+                                    ptr->Bgra |= 0x00ffffff; // set the color of the transparent pixels to white, same as Paint Shop Pro
                                 }
+
+                                ptr++;
                             }
                         }
                     }
+                }
 
-                    using (Bitmap temp = fit.CreateAliasedBitmap(false))
+                using (Bitmap temp = fit.CreateAliasedBitmap(false))
+                {
+                    using (MemoryStream stream = new MemoryStream())
                     {
-                        using (MemoryStream stream = new MemoryStream())
-                        {
-                            temp.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        temp.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
 
-                            jpgChunk.imageData = stream.ToArray();
-                            jpgChunk.compressedSize = (uint)stream.Length;
-                        }
+                        jpgChunk.imageData = stream.ToArray();
+                        jpgChunk.compressedSize = (uint)stream.Length;
                     }
                 }
             }
@@ -997,18 +965,16 @@ namespace PaintShopProFiletype
 
             this.v5Thumbnail = new ThumbnailBlock(thumbSize.Width, thumbSize.Height);
 
-            scratchSurface.Clear(ColorBgra.White);
-            using (RenderArgs args = new RenderArgs(scratchSurface))
+            scratchSurface.Fill(ColorBgra.White);
+            input.CreateRenderer().Render(scratchSurface);
+
+            using (Surface fit = new Surface(thumbSize))
             {
-                input.Render(args, false);
-                using (Surface fit = new Surface(thumbSize))
-                {
-                    fit.FitSurface(ResamplingAlgorithm.SuperSampling, args.Surface);
+                fit.FitSurface(ResamplingAlgorithm.SuperSampling, scratchSurface);
 
-                    this.totalProgress += 3;
+                this.totalProgress += 3;
 
-                    this.v5Thumbnail.channelBlocks = SplitImageChannels(args.Surface, args.Surface.Bounds, 3, majorVersion, true, callback);
-                }
+                this.v5Thumbnail.channelBlocks = SplitImageChannels(scratchSurface, scratchSurface.Bounds, 3, majorVersion, true, callback);
             }
         }
     }
