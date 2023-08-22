@@ -1,3 +1,4 @@
+attr
 config
 deserialize
 dest
@@ -8,6 +9,7 @@ gps
 idx
 ifd
 interop
+jpg
 metadata
 nq
 pdn
