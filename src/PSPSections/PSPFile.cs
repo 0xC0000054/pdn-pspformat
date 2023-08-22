@@ -62,11 +62,11 @@ namespace PaintShopProFiletype
         }
 
         [SkipLocalsInit]
-        private static bool CheckFileSignature(Stream input)
+        private static bool CheckFileSignature(BufferedBinaryReader reader)
         {
             Span<byte> signature = stackalloc byte[32];
 
-            input.ReadExactly(signature);
+            reader.ReadExactly(signature);
 
             // Some writers may not write zeros for the signature padding, so we only check the first 27 bytes of the signature.
             const int SignatureCheckLength = 27;
@@ -93,13 +93,13 @@ namespace PaintShopProFiletype
 
         private void LoadPSPFile(Stream input)
         {
-            if (!CheckFileSignature(input))
-            {
-                throw new FormatException(Properties.Resources.InvalidPSPFile);
-            }
-
             using (BufferedBinaryReader reader = new BufferedBinaryReader(input))
             {
+                if (!CheckFileSignature(reader))
+                {
+                    throw new FormatException(Properties.Resources.InvalidPSPFile);
+                }
+
                 this.fileHeader = new FileHeader(reader);
 
                 while (reader.Position < reader.Length)
