@@ -9,6 +9,7 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using PaintShopProFiletype.IO;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -191,7 +192,7 @@ namespace PaintShopProFiletype.PSPSections
             writer.Write(PSPConstants.blockIdentifier);
             writer.Write((ushort)PSPBlockID.CompositeImage);
 
-            using (new PSPUtil.BlockLengthWriter(writer))
+            using (new BlockLengthWriter(writer))
             {
                 writer.Write(this.chunkSize);
                 writer.Write(this.bitmapCount);
@@ -300,7 +301,7 @@ namespace PaintShopProFiletype.PSPSections
             bw.Write(PSPConstants.blockIdentifier);
             bw.Write((ushort)PSPBlockID.CompositeImageBank);
 
-            using (new PSPUtil.BlockLengthWriter(bw))
+            using (new BlockLengthWriter(bw))
             {
                 bw.Write(this.blockSize);
                 bw.Write(this.attrChunkCount);

@@ -9,6 +9,7 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using PaintShopProFiletype.IO;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -376,7 +377,7 @@ namespace PaintShopProFiletype.PSPSections
                 bw.Write(0U); // Initial data chunk length, always 0.
             }
 
-            using (new PSPUtil.BlockLengthWriter(bw))
+            using (new BlockLengthWriter(bw))
             {
                 int count = this.layerBitmapInfo.Length;
 
@@ -389,7 +390,7 @@ namespace PaintShopProFiletype.PSPSections
                         bw.Write(LayerInfoChunk.Version5ChunkLength); // Initial data chunk length.
                     }
 
-                    using (new PSPUtil.BlockLengthWriter(bw))
+                    using (new BlockLengthWriter(bw))
                     {
                         this.layerInfoChunks[i].Save(bw, majorVersion);
                         this.layerBitmapInfo[i].Save(bw, majorVersion);

@@ -9,6 +9,8 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using PaintShopProFiletype.IO;
+
 namespace PaintShopProFiletype.PSPSections
 {
     /// <summary>
@@ -91,7 +93,7 @@ namespace PaintShopProFiletype.PSPSections
             bw.Write(PSPConstants.v5ThumbnailBlock);
             bw.Write(InitalBlockLength);
 
-            using (new PSPUtil.BlockLengthWriter(bw))
+            using (new BlockLengthWriter(bw))
             {
                 bw.Write(this.width);
                 bw.Write(this.height);

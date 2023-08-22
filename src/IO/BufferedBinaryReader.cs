@@ -14,7 +14,7 @@ using System.Buffers.Binary;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace PaintShopProFiletype.PSPSections
+namespace PaintShopProFiletype.IO
 {
     // Adapted from 'Problem and Solution: The Terrible Inefficiency of FileStream and BinaryReader'
     // https://jacksondunstan.com/articles/3568

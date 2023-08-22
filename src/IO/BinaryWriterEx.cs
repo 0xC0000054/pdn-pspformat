@@ -11,7 +11,7 @@
 
 using System.IO;
 
-namespace PaintShopProFiletype.PSPSections
+namespace PaintShopProFiletype.IO
 {
     internal class BinaryWriterEx : BinaryWriter
     {

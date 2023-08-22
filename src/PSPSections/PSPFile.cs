@@ -29,6 +29,7 @@ using System.Runtime.CompilerServices;
 using PaintDotNet;
 using PaintDotNet.Imaging;
 using PaintDotNet.Rendering;
+using PaintShopProFiletype.IO;
 using PaintShopProFiletype.PSPSections;
 
 namespace PaintShopProFiletype

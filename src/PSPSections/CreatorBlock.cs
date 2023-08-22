@@ -9,6 +9,7 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using PaintShopProFiletype.IO;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -109,7 +110,7 @@ namespace PaintShopProFiletype.PSPSections
                 writer.Write(0U); // Initial data chunk length, always 0.
             }
 
-            using (new PSPUtil.BlockLengthWriter(writer))
+            using (new BlockLengthWriter(writer))
             {
                 if (!string.IsNullOrEmpty(this.title))
                 {

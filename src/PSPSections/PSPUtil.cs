@@ -26,46 +26,12 @@
 using System;
 using System.Drawing;
 using System.Globalization;
-using System.IO;
 using PaintDotNet;
 
 namespace PaintShopProFiletype.PSPSections
 {
-    internal static class PSPUtil
+    internal static partial class PSPUtil
     {
-        internal class BlockLengthWriter : IDisposable
-        {
-            private BinaryWriter writer;
-            private long startPos;
-            private long lengthPos;
-            private bool disposed;
-
-            public BlockLengthWriter(BinaryWriter binaryWriter)
-            {
-                this.writer = binaryWriter;
-                this.lengthPos = this.writer.BaseStream.Position;
-                this.writer.Write(0xBADF00DU);
-                this.startPos = this.writer.BaseStream.Position;
-                this.disposed = false;
-            }
-
-            public void Dispose()
-            {
-                if (!this.disposed)
-                {
-                    long end = this.writer.BaseStream.Position;
-                    long sectionLength = end - this.startPos;
-
-                    this.writer.BaseStream.Position = this.lengthPos;
-                    this.writer.Write((uint)sectionLength);
-
-                    this.writer.BaseStream.Position = end;
-
-                    this.disposed = true;
-                }
-            }
-        }
-
         [System.Diagnostics.DebuggerDisplay("Top = {Top}, Bottom = {Bottom}, Left = {Left}, Right = {Right}")]
         private struct RectanglePosition
         {

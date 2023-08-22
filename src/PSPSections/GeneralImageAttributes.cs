@@ -9,6 +9,7 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using PaintShopProFiletype.IO;
 using System.IO;
 
 namespace PaintShopProFiletype.PSPSections
