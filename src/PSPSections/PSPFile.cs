@@ -912,7 +912,6 @@ namespace PaintShopProFiletype
                     }
                 }
 
-
                 using (MemoryStream stream = new MemoryStream())
                 {
                     using (IBitmap<ColorBgra32> sharedBitmap = fit.CreateSharedBitmap())
