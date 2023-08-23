@@ -27,6 +27,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using PaintDotNet;
+using PaintDotNet.ComponentModel;
 using PaintDotNet.Imaging;
 using PaintDotNet.Rendering;
 using PaintShopProFiletype.IO;
@@ -50,8 +51,12 @@ namespace PaintShopProFiletype
         private LayerBlock layerBlock;
         private ThumbnailBlock v5Thumbnail;
 
-        public PSPFile()
+        private readonly IServiceProvider serviceProvider;
+
+        public PSPFile(IServiceProvider serviceProvider)
         {
+            ArgumentNullException.ThrowIfNull(serviceProvider, nameof(serviceProvider));
+
             this.fileHeader = null;
             this.imageAttributes = null;
             this.extData = null;
@@ -60,6 +65,7 @@ namespace PaintShopProFiletype
             this.globalPalette = null;
             this.layerBlock = null;
             this.v5Thumbnail = null;
+            this.serviceProvider = serviceProvider;
         }
 
         [SkipLocalsInit]
@@ -831,43 +837,8 @@ namespace PaintShopProFiletype
 
             infoChunk.channelBlocks = SplitImageChannels(scratchSurface, scratchSurface.Bounds, channelCount, majorVersion, true, callback);
 
-            using (Surface fit = new Surface(jpegThumbSize))
-            {
-                fit.FitSurface(ResamplingAlgorithm.SuperSampling, scratchSurface);
-
-                if (channelCount == 4)
-                {
-                    unsafe
-                    {
-                        for (int y = 0; y < jpgAttr.height; y++)
-                        {
-                            ColorBgra* ptr = fit.GetRowPointerUnchecked(y);
-                            ColorBgra* endPtr = ptr + jpgAttr.width;
-
-                            while (ptr < endPtr)
-                            {
-                                if (ptr->A == 0)
-                                {
-                                    ptr->Bgra |= 0x00ffffff; // set the color of the transparent pixels to white, same as Paint Shop Pro
-                                }
-
-                                ptr++;
-                            }
-                        }
-                    }
-                }
-
-                using (Bitmap temp = fit.CreateAliasedBitmap(false))
-                {
-                    using (MemoryStream stream = new MemoryStream())
-                    {
-                        temp.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
-
-                        jpgChunk.imageData = stream.ToArray();
-                        jpgChunk.compressedSize = (uint)stream.Length;
-                    }
-                }
-            }
+            jpgChunk.imageData = GetJpegThumbnailData(jpegThumbSize, scratchSurface, channelCount);
+            jpgChunk.compressedSize = (uint)jpgChunk.imageData.Length;
 
             this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.Composite);
             this.imageAttributes.SetGraphicContentFlag(PSPGraphicContents.Thumbnail);
@@ -897,6 +868,73 @@ namespace PaintShopProFiletype
 
                 this.v5Thumbnail.channelBlocks = SplitImageChannels(scratchSurface, scratchSurface.Bounds, 3, majorVersion, true, callback);
             }
+        }
+
+        private byte[] GetJpegThumbnailData(Size jpegThumbSize,  Surface scratchSurface, int channelCount)
+        {
+            IImagingFactory imagingFactory = this.serviceProvider.GetService<IImagingFactory>();
+
+#pragma warning disable IDE0270 // Use coalesce expression
+            if (imagingFactory is null)
+            {
+                throw new InvalidOperationException($"Failed to get the {nameof(IImagingFactory)} for saving the image thumbnail.");
+            }
+#pragma warning restore IDE0270 // Use coalesce expression
+
+            int width = jpegThumbSize.Width;
+            int height = jpegThumbSize.Height;
+
+            byte[] jpegThumbnailData;
+
+            using (Surface fit = new Surface(width, height))
+            {
+                fit.FitSurface(ResamplingAlgorithm.AdaptiveHighQuality, scratchSurface);
+
+                if (channelCount == 4)
+                {
+                    unsafe
+                    {
+                        for (int y = 0; y < height; y++)
+                        {
+                            ColorBgra* ptr = fit.GetRowPointerUnchecked(y);
+                            ColorBgra* endPtr = ptr + width;
+
+                            while (ptr < endPtr)
+                            {
+                                if (ptr->A == 0)
+                                {
+                                    ptr->Bgra |= 0x00ffffff; // set the color of the transparent pixels to white, same as Paint Shop Pro
+                                }
+
+                                ptr++;
+                            }
+                        }
+                    }
+                }
+
+
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    using (IBitmap<ColorBgra32> sharedBitmap = fit.CreateSharedBitmap())
+                    using (IBitmapSource<ColorBgr24> convertedBitmap = sharedBitmap.CreateFormatConverter<ColorBgr24>())
+                    using (IBitmapEncoder encoder = imagingFactory.CreateEncoder(stream, ContainerFormats.Jpeg))
+                    using (IBitmapFrameEncode frameEncode = encoder.CreateNewFrame(out IPropertyBag2 encoderOptions))
+                    {
+                        frameEncode.Initialize(encoderOptions);
+
+                        frameEncode.SetSize(width, height);
+                        frameEncode.SetPixelFormat(PixelFormats.Bgr24);
+                        frameEncode.WriteSource(convertedBitmap);
+
+                        frameEncode.Commit();
+                        encoder.Commit();
+                    }
+
+                    jpegThumbnailData = stream.ToArray();
+                }
+            }
+
+            return jpegThumbnailData;
         }
     }
 }

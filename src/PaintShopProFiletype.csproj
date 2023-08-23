@@ -41,6 +41,9 @@
     <Reference Include="PaintDotNet.Windows">
       <HintPath>..\..\..\..\..\..\Program Files\paint.net\PaintDotNet.Windows.dll</HintPath>
     </Reference>
+    <Reference Include="PaintDotNet.Windows.Core">
+      <HintPath>..\..\..\..\..\..\Program Files\paint.net\PaintDotNet.Windows.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />

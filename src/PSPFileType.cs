@@ -9,6 +9,7 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using PaintDotNet;
@@ -19,11 +20,13 @@ using PaintShopProFiletype.Properties;
 namespace PaintShopProFiletype
 {
     [PluginSupportInfo(typeof(PluginSupportInfo))]
-    public sealed class PaintShopProFormat : PropertyBasedFileType, IFileTypeFactory
+    public sealed class PaintShopProFormat : PropertyBasedFileType
     {
         private static readonly string[] FileExtensions = new string[] { ".psp", ".pspimage", ".pspbrush", ".jfr", ".pspframe", ".pspmask", ".tub", ".psptube" };
 
-        public PaintShopProFormat() : base(
+        private readonly IServiceProvider services;
+
+        public PaintShopProFormat(IServiceProvider services) : base(
             "Paint Shop Pro",
             new FileTypeOptions()
             {
@@ -32,16 +35,12 @@ namespace PaintShopProFiletype
                 SaveExtensions = FileExtensions,
             })
         {
-        }
-
-        public FileType[] GetFileTypeInstances()
-        {
-            return new FileType[] { new PaintShopProFormat() };
+            this.services = services;
         }
 
         protected override Document OnLoad(Stream input)
         {
-            PSPFile file = new PSPFile();
+            PSPFile file = new PSPFile(this.services);
             return file.Load(input);
         }
 
@@ -80,7 +79,7 @@ namespace PaintShopProFiletype
 
         protected override void OnSaveT(Document input, Stream output, PropertyBasedSaveConfigToken token, Surface scratchSurface, ProgressEventHandler progressCallback)
         {
-            PSPFile file = new PSPFile();
+            PSPFile file = new PSPFile(this.services);
 
             CompressionFormats format = (CompressionFormats)token.GetProperty(PropertyNames.CompressionType).Value;
             FileVersion version = (FileVersion)token.GetProperty(PropertyNames.FileVersion).Value;
