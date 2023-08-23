@@ -517,15 +517,11 @@ namespace PaintShopProFiletype
                 channels[i] = new ChannelSubBlock(majorVersion, (uint)channelSize);
                 if (composite)
                 {
-                    switch (majorVersion)
+                    channels[i].bitmapType = majorVersion switch
                     {
-                        case PSPConstants.majorVersion5:
-                            channels[i].bitmapType = PSPDIBType.Thumbnail;
-                            break;
-                        default:
-                            channels[i].bitmapType = i < 3 ? PSPDIBType.Composite : PSPDIBType.CompositeTransparencyMask;
-                            break;
-                    }
+                        PSPConstants.majorVersion5 => PSPDIBType.Thumbnail,
+                        _ => i < 3 ? PSPDIBType.Composite : PSPDIBType.CompositeTransparencyMask,
+                    };
                 }
                 else
                 {
