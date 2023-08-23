@@ -510,7 +510,7 @@ namespace PaintShopProFiletype
         {
             ChannelSubBlock[] channels = new ChannelSubBlock[channelCount];
 
-            int channelSize = savedBounds.Width * savedBounds.Height;
+            int channelSize = checked(savedBounds.Width * savedBounds.Height);
 
             for (int i = 0; i < channelCount; i++)
             {
