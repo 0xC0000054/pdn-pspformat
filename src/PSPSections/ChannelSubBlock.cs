@@ -60,12 +60,12 @@ namespace PaintShopProFiletype.PSPSections
                         break;
                     case PSPCompression.LZ77:
 
-                        using (MemoryOwner<byte> compresedDataOwner = MemoryOwner<byte>.Allocate((int)this.compressedChannelLength))
+                        using (MemoryOwner<byte> compressedDataOwner = MemoryOwner<byte>.Allocate((int)this.compressedChannelLength))
                         {
-                            br.ReadExactly(compresedDataOwner.Span);
+                            br.ReadExactly(compressedDataOwner.Span);
                             this.channelData = new byte[this.uncompressedChannelLength];
 
-                            using (Stream compressedStream = compresedDataOwner.AsStream())
+                            using (Stream compressedStream = compressedDataOwner.AsStream())
                             using (ZLibStream decompressionStream = new ZLibStream(compressedStream, CompressionMode.Decompress))
                             {
                                 Span<byte> channelDataSpan = this.channelData;
