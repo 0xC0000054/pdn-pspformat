@@ -98,7 +98,7 @@ namespace PaintShopProFiletype.PSPSections
         private const uint Version6HeaderSize = 46U;
         private const uint Version5HeaderSize = 38U;
 
-        private ushort fileMajorVersion;
+        private readonly ushort fileMajorVersion;
 
         public GeneralImageAttributes(int width, int height, PSPCompression compType, int activeLayer, int layerCount, ushort majorVersion)
         {

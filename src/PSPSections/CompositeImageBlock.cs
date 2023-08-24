@@ -209,11 +209,11 @@ namespace PaintShopProFiletype.PSPSections
 
     internal class CompositeImageBlock
     {
-        private uint blockSize;
-        private uint attrChunkCount;
-        private CompositeImageAttributesChunk[] attrChunks;
-        private JPEGCompositeInfoChunk jpegChunk;
-        private CompositeImageInfoChunk imageChunk;
+        private readonly uint blockSize;
+        private readonly uint attrChunkCount;
+        private readonly CompositeImageAttributesChunk[] attrChunks;
+        private readonly JPEGCompositeInfoChunk jpegChunk;
+        private readonly CompositeImageInfoChunk imageChunk;
 
         private const uint HeaderSize = 8U;
 

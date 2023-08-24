@@ -30,9 +30,9 @@ namespace PaintShopProFiletype.IO
 {
     internal class BlockLengthWriter : IDisposable
     {
-        private BinaryWriter writer;
-        private long startPos;
-        private long lengthPos;
+        private readonly BinaryWriter writer;
+        private readonly long startPos;
+        private readonly long lengthPos;
         private bool disposed;
 
         public BlockLengthWriter(BinaryWriter binaryWriter)

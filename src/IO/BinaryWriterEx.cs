@@ -15,7 +15,7 @@ namespace PaintShopProFiletype.IO
 {
     internal class BinaryWriterEx : BinaryWriter
     {
-        private bool ownStream;
+        private readonly bool ownStream;
 
         public BinaryWriterEx(Stream stream, bool ownStream) : base(stream)
         {

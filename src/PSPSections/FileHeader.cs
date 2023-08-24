@@ -16,8 +16,8 @@ namespace PaintShopProFiletype.PSPSections
     internal class FileHeader
     {
 #pragma warning disable IDE0032 // Use auto property
-        private ushort majorVersion;
-        private ushort minorVersion;
+        private readonly ushort majorVersion;
+        private readonly ushort minorVersion;
 #pragma warning restore IDE0032 // Use auto property
 
         public ushort Major
