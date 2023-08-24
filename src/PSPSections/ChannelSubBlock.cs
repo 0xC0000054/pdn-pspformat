@@ -85,6 +85,7 @@ namespace PaintShopProFiletype.PSPSections
                             }
                         }
                         break;
+                        default: throw new FormatException($"Unsupported channel compression type: {compression}.");
                 }
             }
         }
