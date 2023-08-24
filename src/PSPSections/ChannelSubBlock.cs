@@ -56,10 +56,17 @@ namespace PaintShopProFiletype.PSPSections
                         this.channelData = br.ReadBytes((int)this.compressedChannelLength);
                         break;
                     case PSPCompression.RLE:
-                        this.channelData = RLE.Decompress(br.ReadBytes((int)this.compressedChannelLength), this.uncompressedChannelLength);
+                        using (MemoryOwner<byte> compressedDataOwner = MemoryOwner<byte>.Allocate((int)this.compressedChannelLength))
+                        {
+                            Span<byte> compressedData = compressedDataOwner.Span;
+
+                            br.ReadExactly(compressedData);
+                            this.channelData = new byte[this.uncompressedChannelLength];
+
+                            RLE.Decompress(compressedData, this.channelData);
+                        }
                         break;
                     case PSPCompression.LZ77:
-
                         using (MemoryOwner<byte> compressedDataOwner = MemoryOwner<byte>.Allocate((int)this.compressedChannelLength))
                         {
                             br.ReadExactly(compressedDataOwner.Span);

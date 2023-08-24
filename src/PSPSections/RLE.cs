@@ -9,22 +9,23 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+using System;
+
 namespace PaintShopProFiletype.PSPSections
 {
     internal static class RLE
     {
-        public static byte[] Decompress(byte[] compressedData, uint uncompressedLength)
+        public static void Decompress(ReadOnlySpan<byte> compressedData, Span<byte> uncompressedData)
         {
-            byte[] uncompressedData = new byte[uncompressedLength];
-
             int srcIndx = 0;
             int dstIndx = 0;
 
             int len;
             byte value;
-            int compLength = compressedData.Length;
+            int compressedLength = compressedData.Length;
+            int uncompressedLength = uncompressedData.Length;
 
-            while (srcIndx < compLength && dstIndx < uncompressedLength)
+            while (srcIndx < compressedLength && dstIndx < uncompressedLength)
             {
                 len = compressedData[srcIndx++];
 
@@ -33,23 +34,15 @@ namespace PaintShopProFiletype.PSPSections
                     len -= 128;
                     value = compressedData[srcIndx++];
 
-                    for (int i = dstIndx; i < dstIndx + len && i < uncompressedLength; i++)
-                    {
-                        uncompressedData[i] = value;
-                    }
+                    uncompressedData.Slice(dstIndx, len).Fill(value);
                 }
                 else
                 {
-                    for (int i = dstIndx; i < dstIndx + len && i < uncompressedLength && srcIndx < compLength; i++)
-                    {
-                        uncompressedData[i] = compressedData[srcIndx++];
-                    }
+                    compressedData.Slice(srcIndx, len).CopyTo(uncompressedData.Slice(dstIndx, len));
                 }
 
                 dstIndx += len;
             }
-
-            return uncompressedData;
         }
     }
 }
