@@ -154,12 +154,12 @@ namespace PaintShopProFiletype.PSPSections
             {
                 this.chunkSize = br.ReadUInt32();
                 ushort nameLen = br.ReadUInt16();
-                this.name = br.ReadAsciiString(nameLen);
+                this.name = br.ReadAsciiString(nameLen, StringReadOptions.None);
             }
             else
             {
                 this.chunkSize = 0;
-                this.name = br.ReadAsciiString(256).TrimEnd(new char[] {'\0'});
+                this.name = br.ReadAsciiString(256, StringReadOptions.TrimNullTerminator);
             }
 
             this.type = (PSPLayerType)br.ReadByte();

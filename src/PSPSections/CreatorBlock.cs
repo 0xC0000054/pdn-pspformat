@@ -56,7 +56,7 @@ namespace PaintShopProFiletype.PSPSections
                 switch (field)
                 {
                     case PSPCreatorFieldID.Title:
-                        this.title = reader.ReadAsciiString((int)fieldLength).Trim();
+                        this.title = reader.ReadAsciiString((int)fieldLength, StringReadOptions.TrimWhiteSpace);
                         break;
                     case PSPCreatorFieldID.CreateDate:
                         this.createDate = reader.ReadUInt32();
@@ -65,13 +65,13 @@ namespace PaintShopProFiletype.PSPSections
                         this.modDate = reader.ReadUInt32();
                         break;
                     case PSPCreatorFieldID.Artist:
-                        this.artist = reader.ReadAsciiString((int)fieldLength).Trim();
+                        this.artist = reader.ReadAsciiString((int)fieldLength, StringReadOptions.TrimWhiteSpace);
                         break;
                     case PSPCreatorFieldID.Copyright:
-                        this.copyRight = reader.ReadAsciiString((int)fieldLength).Trim();
+                        this.copyRight = reader.ReadAsciiString((int)fieldLength, StringReadOptions.TrimWhiteSpace);
                         break;
                     case PSPCreatorFieldID.Description:
-                        this.description = reader.ReadAsciiString((int)fieldLength).Trim();
+                        this.description = reader.ReadAsciiString((int)fieldLength, StringReadOptions.TrimWhiteSpace);
                         break;
 #if DEBUG
                     case PSPCreatorFieldID.ApplicationID:

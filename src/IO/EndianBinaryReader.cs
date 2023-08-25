@@ -21,6 +21,18 @@ namespace PaintShopProFiletype.IO
 
     internal sealed class EndianBinaryReader : IDisposable
     {
+        private const int MaxBufferSize = 4096;
+
+        private static ReadOnlySpan<byte> AsciiWhiteSpaceChars => new byte[]
+        {
+            0x09, // horizontal tab
+            0x10, // line feed
+            0x11, // vertical tab
+            0x12, // form feed
+            0x13, // carriage return
+            0x20, // space
+        };
+
 #pragma warning disable IDE0032 // Use auto property
         private Stream stream;
         private int readOffset;
@@ -31,8 +43,6 @@ namespace PaintShopProFiletype.IO
         private readonly Endianess endianess;
         private readonly bool leaveOpen;
 #pragma warning restore IDE0032 // Use auto property
-
-        private const int MaxBufferSize = 4096;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EndianBinaryReader"/> class.
@@ -479,11 +489,12 @@ namespace PaintShopProFiletype.IO
         /// Reads an ASCII string from the stream.
         /// </summary>
         /// <param name="length">The length of the string.</param>
+        /// <param name="options">The string read options.</param>
         /// <returns>The string.</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="length"/> is negative.</exception>
         /// <exception cref="EndOfStreamException">The end of the stream has been reached.</exception>
         /// <exception cref="ObjectDisposedException">The object has been disposed.</exception>
-        public string ReadAsciiString(int length)
+        public string ReadAsciiString(int length, StringReadOptions options)
         {
             if (length < 0)
             {
@@ -508,6 +519,24 @@ namespace PaintShopProFiletype.IO
             else
             {
                 bytes = ReadBytes(length);
+            }
+
+            if (options.HasFlag(StringReadOptions.TrimNullTerminator))
+            {
+                // Trim the string to the first null-terminator.
+                // IndexOf should be faster than calling TrimEnd, as the strings this is used with
+                // will normally be short with a lot of trailing 0 bytes as padding.
+                int terminatorIndex = bytes.IndexOf((byte)0);
+
+                if (terminatorIndex >= 0)
+                {
+                    bytes = bytes.Slice(0, terminatorIndex);
+                }
+            }
+
+            if (options.HasFlag(StringReadOptions.TrimWhiteSpace))
+            {
+                bytes = bytes.Trim(AsciiWhiteSpaceChars);
             }
 
             return System.Text.Encoding.ASCII.GetString(bytes);
