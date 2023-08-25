@@ -169,7 +169,7 @@ namespace PaintShopProFiletype
                     shift = 3;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("bitDepth", string.Format("Bit depth value of {0} is not supported, value must be 1 or 4.", bitDepth));
+                    throw new ArgumentOutOfRangeException(nameof(bitDepth), string.Format("Bit depth value of {0} is not supported, value must be 1 or 4.", bitDepth));
             }
 
             fixed (byte* ptr = image, dPtr = bitmap.channels[0].channelData)
@@ -792,9 +792,9 @@ namespace PaintShopProFiletype
                 {
                     this.compImage.Save(writer);
                 }
-                else if (this.v5Thumbnail != null)
+                else
                 {
-                    this.v5Thumbnail.Save(writer);
+                    this.v5Thumbnail?.Save(writer);
                 }
                 this.layerBlock.Save(writer, majorVersion);
             }
