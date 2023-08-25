@@ -26,9 +26,9 @@ namespace PaintShopProFiletype.PSPSections
         private const string PSPCreatorMetaDataBinaryFormatter = "PSPFormatCreatorData";
         private const string PSPCreatorMetaDataDataContract = "PSPFormatCreatorData2";
 
-        public static CreatorBlock Deserialize(Document input)
+        public static CreatorBlock? Deserialize(Document input)
         {
-            CreatorBlock result;
+            CreatorBlock? result = null;
 
             string? creatorData = input.Metadata.GetUserValue(PSPCreatorMetaDataDataContract);
             if (!string.IsNullOrEmpty(creatorData))
@@ -41,10 +41,6 @@ namespace PaintShopProFiletype.PSPSections
                 if (!string.IsNullOrEmpty(creatorData))
                 {
                     result = DeserializeBinaryFormatter(creatorData);
-                }
-                else
-                {
-                    result = new CreatorBlock();
                 }
             }
 

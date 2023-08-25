@@ -36,16 +36,6 @@ namespace PaintShopProFiletype.PSPSections
         private string description;
 #pragma warning restore IDE0044 // Add readonly modifier
 
-        public CreatorBlock()
-        {
-            this.title = string.Empty;
-            this.createDate = GetCurrentUnixTimestamp();
-            this.modDate = 0U;
-            this.artist = string.Empty;
-            this.copyRight = string.Empty;
-            this.description = string.Empty;
-        }
-
         public CreatorBlock(EndianBinaryReader reader, uint blockLength)
         {
             this.title = string.Empty;
