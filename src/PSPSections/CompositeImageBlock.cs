@@ -83,7 +83,7 @@ namespace PaintShopProFiletype.PSPSections
         public uint unCompressedSize;
         public PSPDIBType imageType;
 
-        public byte[] imageData;
+        public byte[]? imageData;
 
         private const uint HeaderSize = 14U;
 
@@ -121,7 +121,7 @@ namespace PaintShopProFiletype.PSPSections
             bw.Write(this.compressedSize);
             bw.Write(this.unCompressedSize);
             bw.Write((ushort)this.imageType);
-            bw.Write(this.imageData);
+            bw.Write(this.imageData!);
         }
     }
 
@@ -130,7 +130,7 @@ namespace PaintShopProFiletype.PSPSections
         public uint chunkSize;
         public ushort bitmapCount;
         public ushort channelCount;
-        public ColorPaletteBlock paletteSubBlock;
+        public ColorPaletteBlock? paletteSubBlock;
         public ChannelSubBlock[] channelBlocks;
 
         private const uint HeaderSize = 8U;
@@ -184,7 +184,7 @@ namespace PaintShopProFiletype.PSPSections
             this.bitmapCount = 1;
             this.channelCount = 3;
             this.paletteSubBlock = null;
-            this.channelBlocks = null;
+            this.channelBlocks = null!;
         }
 
         public void Save(BinaryWriter writer, ushort majorVersion)
@@ -212,8 +212,8 @@ namespace PaintShopProFiletype.PSPSections
         private readonly uint blockSize;
         private readonly uint attrChunkCount;
         private readonly CompositeImageAttributesChunk[] attrChunks;
-        private readonly JPEGCompositeInfoChunk jpegChunk;
-        private readonly CompositeImageInfoChunk imageChunk;
+        private readonly JPEGCompositeInfoChunk? jpegChunk;
+        private readonly CompositeImageInfoChunk? imageChunk;
 
         private const uint HeaderSize = 8U;
 
@@ -279,7 +279,7 @@ namespace PaintShopProFiletype.PSPSections
                 }
             }
 
-            if (this.jpegChunk.imageData != null)
+            if (this.jpegChunk?.imageData != null)
             {
                 using (MemoryStream ms = new MemoryStream(this.jpegChunk.imageData))
                 {
@@ -311,8 +311,8 @@ namespace PaintShopProFiletype.PSPSections
                     item.Save(bw);
                 }
 
-                this.jpegChunk.Save(bw);
-                this.imageChunk.Save(bw, PSPConstants.majorVersion6);
+                this.jpegChunk!.Save(bw);
+                this.imageChunk!.Save(bw, PSPConstants.majorVersion6);
             }
         }
 

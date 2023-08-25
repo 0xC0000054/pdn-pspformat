@@ -45,7 +45,7 @@ namespace PaintShopProFiletype
         {
             get
             {
-                return typeof(PaintShopProFormat).Assembly.GetName().Version;
+                return typeof(PaintShopProFormat).Assembly.GetName().Version!;
             }
         }
 

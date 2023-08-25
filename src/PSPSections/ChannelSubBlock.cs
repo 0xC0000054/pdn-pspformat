@@ -36,7 +36,7 @@ namespace PaintShopProFiletype.PSPSections
             this.uncompressedChannelLength = br.ReadUInt32();
             this.bitmapType = (PSPDIBType)br.ReadUInt16();
             this.channelType = (PSPChannelType)br.ReadUInt16();
-            this.channelData = null;
+            this.channelData = Array.Empty<byte>();
 
             if (majorVersion > PSPConstants.majorVersion5)
             {
@@ -97,7 +97,7 @@ namespace PaintShopProFiletype.PSPSections
             this.uncompressedChannelLength = uncompressedSize;
             this.bitmapType = PSPDIBType.Image;
             this.channelType = PSPChannelType.Composite;
-            this.channelData = null;
+            this.channelData = Array.Empty<byte>();
         }
 
         public void Save(BinaryWriter bw, ushort majorVersion)

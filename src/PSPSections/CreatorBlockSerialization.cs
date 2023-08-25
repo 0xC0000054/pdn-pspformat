@@ -51,8 +51,13 @@ namespace PaintShopProFiletype.PSPSections
             return result;
         }
 
-        public static void Serialize(CreatorBlock input, Document document)
+        public static void Serialize(CreatorBlock? input, Document document)
         {
+            if (input is null)
+            {
+                return;
+            }
+
             string data = SerializeDataContract(input);
 
             document.Metadata.SetUserValue(PSPCreatorMetaDataDataContract, data);

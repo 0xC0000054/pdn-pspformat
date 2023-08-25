@@ -59,14 +59,18 @@ namespace PaintShopProFiletype
         {
             ControlInfo info = PropertyBasedFileType.CreateDefaultSaveConfigUI(props);
 
-            info.SetPropertyControlValue(PropertyNames.FileVersion, ControlInfoPropertyNames.DisplayName, Resources.FileVersionText);
-            info.FindControlForPropertyName(PropertyNames.FileVersion).SetValueDisplayName(FileVersion.Version5, Resources.Version5);
-            info.FindControlForPropertyName(PropertyNames.FileVersion).SetValueDisplayName(FileVersion.Version6, Resources.Version6AndLater);
+            PropertyControlInfo fileVersionPCI = info.FindControlForPropertyName(PropertyNames.FileVersion)!;
 
-            info.FindControlForPropertyName(PropertyNames.CompressionType).SetValueDisplayName(CompressionFormats.None, Resources.CompressionFormatNoneText);
-            info.FindControlForPropertyName(PropertyNames.CompressionType).SetValueDisplayName(CompressionFormats.LZ77, Resources.CompressionFormatLZ77Text);
-            info.SetPropertyControlValue(PropertyNames.CompressionType, ControlInfoPropertyNames.DisplayName, Resources.CompressionFormatText);
-            info.SetPropertyControlType(PropertyNames.CompressionType, PropertyControlType.RadioButton);
+            fileVersionPCI.ControlProperties[ControlInfoPropertyNames.DisplayName]!.Value = Resources.FileVersionText;
+            fileVersionPCI.SetValueDisplayName(FileVersion.Version5, Resources.Version5);
+            fileVersionPCI.SetValueDisplayName(FileVersion.Version6, Resources.Version6AndLater);
+
+            PropertyControlInfo compressonTypePCI = info.FindControlForPropertyName(PropertyNames.CompressionType)!;
+
+            compressonTypePCI.ControlProperties[ControlInfoPropertyNames.DisplayName]!.Value = Resources.CompressionFormatText;
+            compressonTypePCI.ControlType.Value = PropertyControlType.RadioButton;
+            compressonTypePCI.SetValueDisplayName(CompressionFormats.None, Resources.CompressionFormatNoneText);
+            compressonTypePCI.SetValueDisplayName(CompressionFormats.LZ77, Resources.CompressionFormatLZ77Text);
 
             return info;
         }
@@ -81,8 +85,8 @@ namespace PaintShopProFiletype
         {
             PSPFile file = new PSPFile(this.services);
 
-            CompressionFormats format = (CompressionFormats)token.GetProperty(PropertyNames.CompressionType).Value;
-            FileVersion version = (FileVersion)token.GetProperty(PropertyNames.FileVersion).Value;
+            CompressionFormats format = (CompressionFormats)token.GetProperty(PropertyNames.CompressionType)!.Value!;
+            FileVersion version = (FileVersion)token.GetProperty(PropertyNames.FileVersion)!.Value!;
 
             file.Save(input, output, format, scratchSurface, (ushort)version, progressCallback);
         }

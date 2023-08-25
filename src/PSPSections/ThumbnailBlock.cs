@@ -25,12 +25,13 @@ namespace PaintShopProFiletype.PSPSections
         internal ushort planeCount;
         internal uint colorCount;
         internal uint paletteEntryCount;
+        internal ColorPaletteBlock? paletteSubBlock;
         internal ushort channelCount;
         internal ChannelSubBlock[] channelBlocks;
 
         private const uint InitalBlockLength = 24U;
 
-        public ThumbnailBlock(int width, int height)
+        public ThumbnailBlock(int width, int height, ChannelSubBlock[] channels)
         {
             this.width = width;
             this.height = height;
@@ -39,12 +40,12 @@ namespace PaintShopProFiletype.PSPSections
             this.planeCount = 1;
             this.colorCount = (1 << 24);
             this.paletteEntryCount = 0;
-            this.channelCount = 3;
+            this.paletteSubBlock = null;
+            this.channelCount = checked((ushort)channels.Length);
+            this.channelBlocks = channels;
         }
 
 #if DEBUG
-        internal ColorPaletteBlock paletteSubBlock;
-
         public ThumbnailBlock(EndianBinaryReader br)
         {
             this.width = br.ReadInt32();
@@ -106,7 +107,7 @@ namespace PaintShopProFiletype.PSPSections
 
                 for (int i = 0; i < this.channelCount; i++)
                 {
-                    this.channelBlocks[i].Save(bw, PSPConstants.majorVersion5);
+                    this.channelBlocks![i].Save(bw, PSPConstants.majorVersion5);
                 }
             }
         }

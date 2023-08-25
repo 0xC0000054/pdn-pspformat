@@ -20,10 +20,28 @@ using System.Text;
 
 namespace PaintShopProFiletype.PSPSections
 {
-    internal struct BlendRange
+    internal readonly struct BlendRange
     {
-        public uint sourceRange;
-        public uint destRange;
+        public readonly uint sourceRange;
+        public readonly uint destRange;
+
+        public BlendRange(EndianBinaryReader reader)
+        {
+            this.sourceRange = reader.ReadUInt32();
+            this.destRange = reader.ReadUInt32();
+        }
+
+        public BlendRange(uint sourceRange, uint destRange)
+        {
+            this.sourceRange = sourceRange;
+            this.destRange = destRange;
+        }
+
+        public void Write(BinaryWriter writer)
+        {
+            writer.Write(this.sourceRange);
+            writer.Write(this.destRange);
+        }
     }
 
     internal sealed class LayerBitmapInfoChunk
@@ -92,12 +110,12 @@ namespace PaintShopProFiletype.PSPSections
             }
         }
 
-        public LayerBitmapInfoChunk(int bitmapCount, int channelCount)
+        public LayerBitmapInfoChunk(int bitmapCount, ChannelSubBlock[] channels)
         {
             this.chunkSize = HeaderSize;
             this.bitmapCount = (ushort)bitmapCount;
-            this.channelCount = (ushort)channelCount;
-            this.channels = null;
+            this.channelCount = checked((ushort)channels.Length);
+            this.channels = channels;
         }
 
         public void Save(BinaryWriter bw, ushort majorVersion)
@@ -111,13 +129,20 @@ namespace PaintShopProFiletype.PSPSections
 
             for (int i = 0; i < this.channelCount; i++)
             {
-                this.channels[i].Save(bw, majorVersion);
+                this.channels![i].Save(bw, majorVersion);
             }
         }
     }
 
     internal sealed class LayerInfoChunk
     {
+        internal const uint Version5ChunkLength = 375U;
+        /// <summary>
+        /// The base chunk size of the version 6 header, 119 bytes + 2 for the name length.
+        /// </summary>
+        private const uint Version6BaseChunkSize = 119 + sizeof(ushort);
+        private const int BlendRangeCount = 5;
+
         public uint chunkSize;
         public string name;
         public PSPLayerType type;
@@ -141,12 +166,6 @@ namespace PaintShopProFiletype.PSPSections
 
         public byte useHighlightColor;
         public uint highlightColor;
-
-        internal const uint Version5ChunkLength = 375U;
-        /// <summary>
-        /// The base chunk size of the version 6 header, 119 bytes + 2 for the name length.
-        /// </summary>
-        private const uint Version6BaseChunkSize = 119 + sizeof(ushort);
 
         public LayerInfoChunk(EndianBinaryReader br, ushort majorVersion)
         {
@@ -184,14 +203,10 @@ namespace PaintShopProFiletype.PSPSections
             this.maskDisabled = br.ReadByte();
             this.invertMaskOnBlend = br.ReadByte();
             this.blendRangeCount = br.ReadUInt16();
-            this.blendRanges = new BlendRange[5];
-            for (int i = 0; i < 5; i++)
+            this.blendRanges = new BlendRange[BlendRangeCount];
+            for (int i = 0; i < this.blendRanges.Length; i++)
             {
-                this.blendRanges[i] = new BlendRange
-                {
-                    sourceRange = br.ReadUInt32(),
-                    destRange = br.ReadUInt32()
-                };
+                this.blendRanges[i] = new BlendRange(br);
             }
             this.v5BitmapCount = 0;
             this.v5ChannelCount = 0;
@@ -246,7 +261,7 @@ namespace PaintShopProFiletype.PSPSections
             this.maskLinked = 0;
             this.invertMaskOnBlend = 0;
             this.blendRangeCount = 0;
-            this.blendRanges = null;
+            this.blendRanges = new BlendRange[BlendRangeCount];
             this.v5BitmapCount = 0;
             this.v5ChannelCount = 0;
             this.useHighlightColor = 0;
@@ -274,10 +289,9 @@ namespace PaintShopProFiletype.PSPSections
             bw.Write(this.maskDisabled);
             bw.Write(this.invertMaskOnBlend);
             bw.Write(this.blendRangeCount);
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < this.blendRanges.Length; i++)
             {
-                bw.Write(0U);
-                bw.Write(0U);
+                this.blendRanges[i].Write(bw);
             }
             if (majorVersion <= PSPConstants.majorVersion5)
             {
@@ -293,7 +307,7 @@ namespace PaintShopProFiletype.PSPSections
 
             Span<byte> buffer = stackalloc byte[MaxStackBufferLength];
 
-            byte[] arrayFromPool = null;
+            byte[]? arrayFromPool = null;
 
             try
             {
@@ -368,8 +382,14 @@ namespace PaintShopProFiletype.PSPSections
             this.layerBitmapInfo = biChunks;
         }
 
-        public LayerBlock(EndianBinaryReader br, GeneralImageAttributes imageAttributes, ushort majorVersion)
+        public LayerBlock(EndianBinaryReader br, GeneralImageAttributes? imageAttributes, ushort majorVersion)
         {
+            if (imageAttributes is null)
+            {
+                // The image attributes block must come before the layer block.
+                throw new FormatException(Properties.Resources.InvalidPSPFile);
+            }
+
             IList<RasterLayerChunk> raster = CountRasterChunks(br, imageAttributes.LayerCount, majorVersion);
 
             int layerCount = raster.Count;

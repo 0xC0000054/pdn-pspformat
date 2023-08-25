@@ -42,14 +42,14 @@ namespace PaintShopProFiletype
         0x72, 0x6F, 0x20, 0x49, 0x6D, 0x61, 0x67, 0x65, 0x20, 0x46, 0x69, 0x6C, 0x65, 0x0A,
         0x1A, 0x00, 0x00, 0x00, 0x00, 0x00}; // "Paint Shop Pro Image File\n\x1a” padded to 32 bytes
 
-        private FileHeader fileHeader;
-        private GeneralImageAttributes imageAttributes;
-        private ExtendedDataBlock extData;
-        private CreatorBlock creator;
-        private CompositeImageBlock compImage;
-        private ColorPaletteBlock globalPalette;
-        private LayerBlock layerBlock;
-        private ThumbnailBlock v5Thumbnail;
+        private FileHeader? fileHeader;
+        private GeneralImageAttributes? imageAttributes;
+        private ExtendedDataBlock? extData;
+        private CreatorBlock? creator;
+        private CompositeImageBlock? compImage;
+        private ColorPaletteBlock? globalPalette;
+        private LayerBlock? layerBlock;
+        private ThumbnailBlock? v5Thumbnail;
 
         private readonly IServiceProvider serviceProvider;
 
@@ -172,7 +172,7 @@ namespace PaintShopProFiletype
                     throw new ArgumentOutOfRangeException(nameof(bitDepth), string.Format("Bit depth value of {0} is not supported, value must be 1 or 4.", bitDepth));
             }
 
-            fixed (byte* ptr = image, dPtr = bitmap.channels[0].channelData)
+            fixed (byte* ptr = image, dPtr = bitmap.channels![0].channelData)
             {
                 int srcStride = width / bpp;
 
@@ -311,7 +311,7 @@ namespace PaintShopProFiletype
 
                     int bytesPerPixel = 1;
                     int stride = saveRect.Width;
-                    byte[] expandedPalette = null;
+                    byte[]? expandedPalette = null;
 
                     switch (bitDepth)
                     {
@@ -406,7 +406,7 @@ namespace PaintShopProFiletype
                                         {
                                             ChannelSubBlock ch = bitmapInfo.channels[ci];
                                             palIdx = ch.channelData[index];
-                                            entry = this.globalPalette.entries[palIdx];
+                                            entry = this.globalPalette!.entries[palIdx];
 
                                             switch (ch.bitmapType)
                                             {
@@ -431,8 +431,8 @@ namespace PaintShopProFiletype
                                     case 4:
                                     case 1:
 
-                                        palIdx = expandedPalette[index];
-                                        entry = this.globalPalette.entries[palIdx];
+                                        palIdx = expandedPalette![index];
+                                        entry = this.globalPalette!.entries[palIdx];
 
                                         ptr->R = entry.red;
                                         ptr->G = entry.green;
@@ -582,7 +582,7 @@ namespace PaintShopProFiletype
 
                             ChannelSubBlock channel = channels[channelIndex];
 
-                            switch (this.imageAttributes.CompressionType)
+                            switch (this.imageAttributes!.CompressionType)
                             {
                                 case PSPCompression.None:
                                     channel.compressedChannelLength = (uint)channelSize;
@@ -766,10 +766,12 @@ namespace PaintShopProFiletype
                         bitmapCount = 2;
                     }
 
-                    LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk(bitmapCount, channelCount)
-                    {
-                        channels = SplitImageChannels(layer.Surface, savedBounds, channelCount, majorVersion, false, callback)
-                    };
+                    LayerBitmapInfoChunk biChunk = new LayerBitmapInfoChunk(bitmapCount, SplitImageChannels(layer.Surface,
+                                                                                                            savedBounds,
+                                                                                                            channelCount,
+                                                                                                            majorVersion,
+                                                                                                            false,
+                                                                                                            callback));
 
                     if (majorVersion <= PSPConstants.majorVersion5)
                     {
@@ -808,7 +810,7 @@ namespace PaintShopProFiletype
                 input.Width,
                 input.Height,
                 PSPCompositeImageType.Composite,
-                this.imageAttributes.CompressionType);
+                this.imageAttributes!.CompressionType);
             CompositeImageAttributesChunk jpgAttr = new CompositeImageAttributesChunk(
                 jpegThumbSize.Width,
                 jpegThumbSize.Height,
@@ -855,8 +857,6 @@ namespace PaintShopProFiletype
         {
             Size thumbSize = GetThumbnailDimensions(input.Width, input.Height, 300);
 
-            this.v5Thumbnail = new ThumbnailBlock(thumbSize.Width, thumbSize.Height);
-
             scratchSurface.Fill(ColorBgra.White);
             input.CreateRenderer().Render(scratchSurface);
 
@@ -866,13 +866,14 @@ namespace PaintShopProFiletype
 
                 this.totalProgress += 3;
 
-                this.v5Thumbnail.channelBlocks = SplitImageChannels(scratchSurface, scratchSurface.Bounds, 3, majorVersion, true, callback);
+                ChannelSubBlock[] channels = SplitImageChannels(scratchSurface, scratchSurface.Bounds, 3, majorVersion, true, callback);
+                this.v5Thumbnail = new ThumbnailBlock(thumbSize.Width, thumbSize.Height, channels);
             }
         }
 
         private byte[] GetJpegThumbnailData(Size jpegThumbSize,  Surface scratchSurface, int channelCount)
         {
-            IImagingFactory imagingFactory = this.serviceProvider.GetService<IImagingFactory>();
+            IImagingFactory? imagingFactory = this.serviceProvider.GetService<IImagingFactory>();
 
 #pragma warning disable IDE0270 // Use coalesce expression
             if (imagingFactory is null)

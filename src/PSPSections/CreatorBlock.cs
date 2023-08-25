@@ -48,6 +48,13 @@ namespace PaintShopProFiletype.PSPSections
 
         public CreatorBlock(EndianBinaryReader reader, uint blockLength)
         {
+            this.title = string.Empty;
+            this.createDate = 0;
+            this.modDate = 0;
+            this.artist = string.Empty;
+            this.copyRight = string.Empty;
+            this.description = string.Empty;
+
             long endOffset = reader.Position + blockLength;
 
             while (reader.Position < endOffset && reader.ReadUInt32() == PSPConstants.fieldIdentifier)
@@ -161,7 +168,7 @@ namespace PaintShopProFiletype.PSPSections
 
             Span<byte> buffer = stackalloc byte[MaxStackBufferLength];
 
-            byte[] arrayFromPool = null;
+            byte[]? arrayFromPool = null;
 
             try
             {

@@ -19,7 +19,7 @@ namespace PaintShopProFiletype.IO
     // Adapted from 'Problem and Solution: The Terrible Inefficiency of FileStream and BinaryReader'
     // https://jacksondunstan.com/articles/3568
 
-    internal sealed class EndianBinaryReader : IDisposable
+    internal sealed class EndianBinaryReader : PaintDotNet.Disposable
     {
         private const int MaxBufferSize = 4096;
 
@@ -34,10 +34,10 @@ namespace PaintShopProFiletype.IO
         };
 
 #pragma warning disable IDE0032 // Use auto property
-        private Stream stream;
         private int readOffset;
         private int readLength;
 
+        private readonly Stream stream;
         private readonly byte[] buffer;
         private readonly int bufferSize;
         private readonly Endianess endianess;
@@ -138,18 +138,6 @@ namespace PaintShopProFiletype.IO
                         this.stream.Seek(value, SeekOrigin.Begin);
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            if (this.stream != null && !this.leaveOpen)
-            {
-                this.stream.Dispose();
-                this.stream = null;
             }
         }
 
@@ -542,6 +530,16 @@ namespace PaintShopProFiletype.IO
             return System.Text.Encoding.ASCII.GetString(bytes);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && !this.leaveOpen)
+            {
+                this.stream.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
         /// <summary>
         /// Ensures that the buffer contains at least the number of bytes requested.
         /// </summary>
@@ -679,7 +677,7 @@ namespace PaintShopProFiletype.IO
         /// <exception cref="ObjectDisposedException">The object has been disposed.</exception>
         private void VerifyNotDisposed()
         {
-            if (this.stream == null)
+            if (this.IsDisposed)
             {
                 throw new ObjectDisposedException(nameof(EndianBinaryReader));
             }
