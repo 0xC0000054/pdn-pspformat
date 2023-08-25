@@ -11,8 +11,10 @@
 
 using PaintShopProFiletype.IO;
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace PaintShopProFiletype.PSPSections
@@ -114,7 +116,7 @@ namespace PaintShopProFiletype.PSPSections
             {
                 if (!string.IsNullOrEmpty(this.title))
                 {
-                    WriteASCIIField(writer, PSPCreatorFieldID.Title, this.title);
+                    WriteAsciiField(writer, PSPCreatorFieldID.Title, this.title);
                 }
 
                 if (this.createDate != 0U)
@@ -126,17 +128,17 @@ namespace PaintShopProFiletype.PSPSections
 
                 if (!string.IsNullOrEmpty(this.artist))
                 {
-                    WriteASCIIField(writer, PSPCreatorFieldID.Artist, this.artist);
+                    WriteAsciiField(writer, PSPCreatorFieldID.Artist, this.artist);
                 }
 
                 if (!string.IsNullOrEmpty(this.copyRight))
                 {
-                    WriteASCIIField(writer, PSPCreatorFieldID.Copyright, this.copyRight);
+                    WriteAsciiField(writer, PSPCreatorFieldID.Copyright, this.copyRight);
                 }
 
                 if (!string.IsNullOrEmpty(this.description))
                 {
-                    WriteASCIIField(writer, PSPCreatorFieldID.Description, this.description);
+                    WriteAsciiField(writer, PSPCreatorFieldID.Description, this.description);
                 }
             }
         }
@@ -152,15 +154,41 @@ namespace PaintShopProFiletype.PSPSections
             return (uint)t.TotalSeconds;
         }
 
-        private static void WriteASCIIField(BinaryWriter writer, PSPCreatorFieldID field, string value)
+        [SkipLocalsInit]
+        private static void WriteAsciiField(BinaryWriter writer, PSPCreatorFieldID field, string value)
         {
-            writer.Write(PSPConstants.fieldIdentifier);
-            writer.Write((ushort)field);
+            const int MaxStackBufferLength = 256;
 
-            byte[] bytes = Encoding.ASCII.GetBytes(value);
+            Span<byte> buffer = stackalloc byte[MaxStackBufferLength];
 
-            writer.Write((uint)bytes.Length);
-            writer.Write(bytes);
+            byte[] arrayFromPool = null;
+
+            try
+            {
+                int maxNameLengthInBytes = Encoding.ASCII.GetMaxByteCount(value.Length);
+
+                if (maxNameLengthInBytes > MaxStackBufferLength)
+                {
+                    arrayFromPool = ArrayPool<byte>.Shared.Rent(maxNameLengthInBytes);
+                    buffer = arrayFromPool;
+                }
+
+                int bytesWritten = Encoding.ASCII.GetBytes(value, buffer);
+
+                buffer = buffer.Slice(0, bytesWritten);
+
+                writer.Write(PSPConstants.fieldIdentifier);
+                writer.Write((ushort)field);
+                writer.Write((uint)buffer.Length);
+                writer.Write(buffer);
+            }
+            finally
+            {
+                if (arrayFromPool != null)
+                {
+                    ArrayPool<byte>.Shared.Return(arrayFromPool);
+                }
+            }
         }
 
         private static void WriteUInt32Field(BinaryWriter writer, PSPCreatorFieldID field, uint value)

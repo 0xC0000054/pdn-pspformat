@@ -11,9 +11,11 @@
 
 using PaintShopProFiletype.IO;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace PaintShopProFiletype.PSPSections
@@ -256,27 +258,8 @@ namespace PaintShopProFiletype.PSPSections
             if (majorVersion > PSPConstants.majorVersion5)
             {
                 bw.Write(this.chunkSize);
-                byte[] nameBytes = Encoding.ASCII.GetBytes(this.name);
-                bw.Write((ushort)nameBytes.Length);
-                bw.Write(nameBytes);
             }
-            else
-            {
-                byte[] nameBytes = new byte[256];
-                if (this.name.Length > 255)
-                {
-                    byte[] temp = Encoding.ASCII.GetBytes(this.name.Substring(0, 255));
-                    Buffer.BlockCopy(temp, 0, nameBytes, 0, 255);
-                    nameBytes[255] = 0;
-                }
-                else
-                {
-                    byte[] temp = Encoding.ASCII.GetBytes(this.name + "\0");
-                    Buffer.BlockCopy(temp, 0, nameBytes, 0, temp.Length);
-                }
-
-                bw.Write(nameBytes);
-            }
+            WriteLayerName(bw, majorVersion);
             bw.Write((byte)this.type);
             bw.Write(this.imageRect);
             bw.Write(this.saveRect);
@@ -300,6 +283,58 @@ namespace PaintShopProFiletype.PSPSections
             {
                 bw.Write(this.v5BitmapCount);
                 bw.Write(this.v5ChannelCount);
+            }
+        }
+
+        [SkipLocalsInit]
+        private void WriteLayerName(BinaryWriter writer, ushort majorVersion)
+        {
+            const int MaxStackBufferLength = 256;
+
+            Span<byte> buffer = stackalloc byte[MaxStackBufferLength];
+
+            byte[] arrayFromPool = null;
+
+            try
+            {
+                int maxNameLengthInBytes = Encoding.ASCII.GetMaxByteCount(this.name.Length);
+
+                if (maxNameLengthInBytes > MaxStackBufferLength)
+                {
+                    arrayFromPool = ArrayPool<byte>.Shared.Rent(maxNameLengthInBytes);
+                    buffer = arrayFromPool;
+                }
+
+                int bytesWritten = Encoding.ASCII.GetBytes(this.name, buffer);
+
+                if (majorVersion > PSPConstants.majorVersion5)
+                {
+                    buffer = buffer.Slice(0, bytesWritten);
+
+                    writer.Write(checked((ushort)buffer.Length));
+                    writer.Write(buffer);
+                }
+                else
+                {
+                    // Paint Shop Pro 5 and earlier use a null-terminated layer name string in a fixed 256 byte
+                    // buffer, so strings that are longer than 255 bytes will be truncated to ensure that the
+                    // null-terminator can be written.
+                    buffer = buffer.Slice(0, 256);
+
+                    int terminatorIndex = Math.Min(bytesWritten, 255);
+
+                    // Fill the remaining space in the buffer with zeros.
+                    buffer.Slice(terminatorIndex).Clear();
+
+                    writer.Write(buffer);
+                }
+            }
+            finally
+            {
+                if (arrayFromPool != null)
+                {
+                    ArrayPool<byte>.Shared.Return(arrayFromPool);
+                }
             }
         }
     }
