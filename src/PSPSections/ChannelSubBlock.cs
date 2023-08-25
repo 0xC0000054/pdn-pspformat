@@ -29,7 +29,7 @@ namespace PaintShopProFiletype.PSPSections
         private const uint Version6HeaderSize = 16U;
         private const uint Version5HeaderSize = 12U;
 
-        public ChannelSubBlock(IO.BufferedBinaryReader br, PSPCompression compression, ushort majorVersion)
+        public ChannelSubBlock(IO.EndianBinaryReader br, PSPCompression compression, ushort majorVersion)
         {
             this.chunkSize = majorVersion > PSPConstants.majorVersion5 ? br.ReadUInt32() : 0U;
             this.compressedChannelLength = br.ReadUInt32();

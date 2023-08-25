@@ -20,7 +20,7 @@ namespace PaintShopProFiletype.PSPSections
 
         private const uint HeaderSize = 8U;
 
-        public ColorPaletteBlock(IO.BufferedBinaryReader br, ushort majorVersion)
+        public ColorPaletteBlock(IO.EndianBinaryReader br, ushort majorVersion)
         {
             this.chunkSize = majorVersion > PSPConstants.majorVersion5 ?  br.ReadUInt32() : 0;
             this.entriesCount = br.ReadUInt32();

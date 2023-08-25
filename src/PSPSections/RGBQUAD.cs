@@ -21,7 +21,7 @@ namespace PaintShopProFiletype.PSPSections
         public readonly byte blue;
         public readonly byte reserved;
 
-        public RGBQUAD(IO.BufferedBinaryReader reader)
+        public RGBQUAD(IO.EndianBinaryReader reader)
         {
             this.red = reader.ReadByte();
             this.green = reader.ReadByte();

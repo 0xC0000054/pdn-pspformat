@@ -30,7 +30,7 @@ namespace PaintShopProFiletype.PSPSections
         private const uint HeaderSize = 24U;
 
 #if DEBUG
-        public CompositeImageAttributesChunk(BufferedBinaryReader br)
+        public CompositeImageAttributesChunk(EndianBinaryReader br)
         {
             this.chunkSize = br.ReadUInt32();
             this.width = br.ReadInt32();
@@ -88,7 +88,7 @@ namespace PaintShopProFiletype.PSPSections
         private const uint HeaderSize = 14U;
 
 #if DEBUG
-        public JPEGCompositeInfoChunk(BufferedBinaryReader br)
+        public JPEGCompositeInfoChunk(EndianBinaryReader br)
         {
             this.chunkSize = br.ReadUInt32();
             this.compressedSize = br.ReadUInt32();
@@ -136,7 +136,7 @@ namespace PaintShopProFiletype.PSPSections
         private const uint HeaderSize = 8U;
 
 #if DEBUG
-        public CompositeImageInfoChunk(BufferedBinaryReader br, CompositeImageAttributesChunk attr, ushort majorVersion)
+        public CompositeImageInfoChunk(EndianBinaryReader br, CompositeImageAttributesChunk attr, ushort majorVersion)
         {
             this.chunkSize = br.ReadUInt32();
             this.bitmapCount = br.ReadUInt16();
@@ -227,7 +227,7 @@ namespace PaintShopProFiletype.PSPSections
         }
 
 #if DEBUG
-        public CompositeImageBlock(BufferedBinaryReader br, ushort majorVersion)
+        public CompositeImageBlock(EndianBinaryReader br, ushort majorVersion)
         {
             this.blockSize = br.ReadUInt32();
             this.attrChunkCount = br.ReadUInt32();

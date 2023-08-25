@@ -69,7 +69,7 @@ namespace PaintShopProFiletype
         }
 
         [SkipLocalsInit]
-        private static bool CheckFileSignature(BufferedBinaryReader reader)
+        private static bool CheckFileSignature(EndianBinaryReader reader)
         {
             Span<byte> signature = stackalloc byte[32];
 
@@ -100,7 +100,7 @@ namespace PaintShopProFiletype
 
         private void LoadPSPFile(Stream input)
         {
-            using (BufferedBinaryReader reader = new BufferedBinaryReader(input))
+            using (EndianBinaryReader reader = new EndianBinaryReader(input, Endianess.Little, leaveOpen: true))
             {
                 if (!CheckFileSignature(reader))
                 {

@@ -45,7 +45,7 @@ namespace PaintShopProFiletype.PSPSections
 #if DEBUG
         internal ColorPaletteBlock paletteSubBlock;
 
-        public ThumbnailBlock(BufferedBinaryReader br)
+        public ThumbnailBlock(EndianBinaryReader br)
         {
             this.width = br.ReadInt32();
             this.height = br.ReadInt32();

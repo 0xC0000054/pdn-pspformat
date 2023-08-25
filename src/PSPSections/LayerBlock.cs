@@ -33,7 +33,7 @@ namespace PaintShopProFiletype.PSPSections
 
         internal const uint HeaderSize = 8U;
 
-        public LayerBitmapInfoChunk(BufferedBinaryReader br, PSPCompression compression, ushort majorVersion)
+        public LayerBitmapInfoChunk(EndianBinaryReader br, PSPCompression compression, ushort majorVersion)
         {
             long startOffset = br.Position;
 
@@ -65,7 +65,7 @@ namespace PaintShopProFiletype.PSPSections
             }
         }
 
-        public LayerBitmapInfoChunk(BufferedBinaryReader br, PSPCompression compression, ushort v5BitmapCount, ushort v5ChannelCount)
+        public LayerBitmapInfoChunk(EndianBinaryReader br, PSPCompression compression, ushort v5BitmapCount, ushort v5ChannelCount)
         {
             this.chunkSize = 0;
             this.bitmapCount = v5BitmapCount;
@@ -146,7 +146,7 @@ namespace PaintShopProFiletype.PSPSections
         /// </summary>
         private const uint Version6BaseChunkSize = 119 + sizeof(ushort);
 
-        public LayerInfoChunk(BufferedBinaryReader br, ushort majorVersion)
+        public LayerInfoChunk(EndianBinaryReader br, ushort majorVersion)
         {
             long startOffset = br.Position;
 
@@ -333,7 +333,7 @@ namespace PaintShopProFiletype.PSPSections
             this.layerBitmapInfo = biChunks;
         }
 
-        public LayerBlock(BufferedBinaryReader br, GeneralImageAttributes imageAttributes, ushort majorVersion)
+        public LayerBlock(EndianBinaryReader br, GeneralImageAttributes imageAttributes, ushort majorVersion)
         {
             IList<RasterLayerChunk> raster = CountRasterChunks(br, imageAttributes.LayerCount, majorVersion);
 
@@ -411,7 +411,7 @@ namespace PaintShopProFiletype.PSPSections
             }
         }
 
-        private static IList<RasterLayerChunk> CountRasterChunks(BufferedBinaryReader reader, int layerCount, ushort majorVersion)
+        private static IList<RasterLayerChunk> CountRasterChunks(EndianBinaryReader reader, int layerCount, ushort majorVersion)
         {
             List<RasterLayerChunk> rasterChunks = new List<RasterLayerChunk>(layerCount);
 

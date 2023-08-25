@@ -115,14 +115,14 @@ namespace PaintShopProFiletype.PSPSections
             this.fileMajorVersion = majorVersion;
         }
 
-        public GeneralImageAttributes(BufferedBinaryReader br, ushort majorVersion)
+        public GeneralImageAttributes(EndianBinaryReader br, ushort majorVersion)
         {
             this.fileMajorVersion = majorVersion;
 
             Load(br);
         }
 
-        private void Load(BufferedBinaryReader br)
+        private void Load(EndianBinaryReader br)
         {
             this.chunkSize = this.fileMajorVersion > PSPConstants.majorVersion5 ? br.ReadUInt32() : 0;
             this.width = br.ReadInt32();

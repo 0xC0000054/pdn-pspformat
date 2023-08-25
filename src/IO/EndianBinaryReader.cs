@@ -19,7 +19,7 @@ namespace PaintShopProFiletype.IO
     // Adapted from 'Problem and Solution: The Terrible Inefficiency of FileStream and BinaryReader'
     // https://jacksondunstan.com/articles/3568
 
-    internal sealed class BufferedBinaryReader : IDisposable
+    internal sealed class EndianBinaryReader : IDisposable
     {
 #pragma warning disable IDE0032 // Use auto property
         private Stream stream;
@@ -28,24 +28,44 @@ namespace PaintShopProFiletype.IO
 
         private readonly byte[] buffer;
         private readonly int bufferSize;
+        private readonly Endianess endianess;
+        private readonly bool leaveOpen;
 #pragma warning restore IDE0032 // Use auto property
 
         private const int MaxBufferSize = 4096;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BufferedBinaryReader"/> class.
+        /// Initializes a new instance of the <see cref="EndianBinaryReader"/> class.
         /// </summary>
         /// <param name="stream">The stream.</param>
+        /// <param name="byteOrder">The byte order of the stream.</param>
         /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
-        public BufferedBinaryReader(Stream stream)
+        public EndianBinaryReader(Stream stream, Endianess byteOrder) : this(stream, byteOrder, false)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EndianBinaryReader"/> class.
+        /// </summary>
+        /// <param name="stream">The stream.</param>
+        /// <param name="byteOrder">The byte order of the stream.</param>
+        /// <param name="leaveOpen">
+        /// <see langword="true"/> to leave the stream open after the EndianBinaryReader is disposed; otherwise, <see langword="false"/>
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
+        public EndianBinaryReader(Stream stream, Endianess byteOrder, bool leaveOpen)
         {
             this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
             this.bufferSize = (int)Math.Min(stream.Length, MaxBufferSize);
             this.buffer = new byte[this.bufferSize];
+            this.endianess = byteOrder;
+            this.leaveOpen = leaveOpen;
 
             this.readOffset = 0;
             this.readLength = 0;
         }
+
+        public Endianess Endianess => this.endianess;
 
         /// <summary>
         /// Gets the length of the stream.
@@ -84,23 +104,21 @@ namespace PaintShopProFiletype.IO
             {
                 if (value < 0)
                 {
-                    throw new ArgumentOutOfRangeException("value");
+                    throw new ArgumentOutOfRangeException(nameof(value));
                 }
-
                 VerifyNotDisposed();
 
                 long current = this.Position;
 
                 if (value != current)
                 {
-                    long diff = value - current;
-
-                    long newOffset = this.readOffset + diff;
+                    long bufferStartOffset = current - this.readOffset;
+                    long bufferEndOffset = bufferStartOffset + this.readLength;
 
                     // Avoid reading from the stream if the offset is within the current buffer.
-                    if (newOffset >= 0 && newOffset <= this.readLength)
+                    if (value >= bufferStartOffset && value <= bufferEndOffset)
                     {
-                        this.readOffset = (int)newOffset;
+                        this.readOffset = (int)(value - bufferStartOffset);
                     }
                     else
                     {
@@ -118,7 +136,7 @@ namespace PaintShopProFiletype.IO
         /// </summary>
         public void Dispose()
         {
-            if (this.stream != null)
+            if (this.stream != null && !this.leaveOpen)
             {
                 this.stream.Dispose();
                 this.stream = null;
@@ -142,12 +160,10 @@ namespace PaintShopProFiletype.IO
             {
                 throw new ArgumentNullException(nameof(bytes));
             }
-
             if (count < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
-
             VerifyNotDisposed();
 
             if (count == 0)
@@ -216,12 +232,11 @@ namespace PaintShopProFiletype.IO
             {
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
-
             VerifyNotDisposed();
 
             if (count == 0)
             {
-                return EmptyArray<byte>.Value;
+                return Array.Empty<byte>();
             }
 
             byte[] bytes = new byte[count];
@@ -328,9 +343,22 @@ namespace PaintShopProFiletype.IO
 
             ushort value = Unsafe.ReadUnaligned<ushort>(ref this.buffer[this.readOffset]);
 
-            if (!BitConverter.IsLittleEndian)
+            switch (this.endianess)
             {
-                value = BinaryPrimitives.ReverseEndianness(value);
+                case Endianess.Big:
+                    if (BitConverter.IsLittleEndian)
+                    {
+                        value = BinaryPrimitives.ReverseEndianness(value);
+                    }
+                    break;
+                case Endianess.Little:
+                    if (!BitConverter.IsLittleEndian)
+                    {
+                        value = BinaryPrimitives.ReverseEndianness(value);
+                    }
+                    break;
+                default:
+                    throw new InvalidOperationException("Unsupported byte order: " + this.endianess.ToString());
             }
 
             this.readOffset += sizeof(ushort);
@@ -363,9 +391,22 @@ namespace PaintShopProFiletype.IO
 
             uint value = Unsafe.ReadUnaligned<uint>(ref this.buffer[this.readOffset]);
 
-            if (!BitConverter.IsLittleEndian)
+            switch (this.endianess)
             {
-                value = BinaryPrimitives.ReverseEndianness(value);
+                case Endianess.Big:
+                    if (BitConverter.IsLittleEndian)
+                    {
+                        value = BinaryPrimitives.ReverseEndianness(value);
+                    }
+                    break;
+                case Endianess.Little:
+                    if (!BitConverter.IsLittleEndian)
+                    {
+                        value = BinaryPrimitives.ReverseEndianness(value);
+                    }
+                    break;
+                default:
+                    throw new InvalidOperationException("Unsupported byte order: " + this.endianess.ToString());
             }
 
             this.readOffset += sizeof(uint);
@@ -411,9 +452,22 @@ namespace PaintShopProFiletype.IO
 
             ulong value = Unsafe.ReadUnaligned<ulong>(ref this.buffer[this.readOffset]);
 
-            if (!BitConverter.IsLittleEndian)
+            switch (this.endianess)
             {
-                value = BinaryPrimitives.ReverseEndianness(value);
+                case Endianess.Big:
+                    if (BitConverter.IsLittleEndian)
+                    {
+                        value = BinaryPrimitives.ReverseEndianness(value);
+                    }
+                    break;
+                case Endianess.Little:
+                    if (!BitConverter.IsLittleEndian)
+                    {
+                        value = BinaryPrimitives.ReverseEndianness(value);
+                    }
+                    break;
+                default:
+                    throw new InvalidOperationException("Unsupported byte order: " + this.endianess.ToString());
             }
 
             this.readOffset += sizeof(ulong);
@@ -435,7 +489,6 @@ namespace PaintShopProFiletype.IO
             {
                 throw new ArgumentOutOfRangeException(nameof(length));
             }
-
             VerifyNotDisposed();
 
             if (length == 0)
@@ -443,13 +496,21 @@ namespace PaintShopProFiletype.IO
                 return string.Empty;
             }
 
-            EnsureBuffer(length);
+            ReadOnlySpan<byte> bytes;
 
-            string value = System.Text.Encoding.ASCII.GetString(this.buffer, this.readOffset, length);
+            if (length <= this.bufferSize)
+            {
+                EnsureBuffer(length);
+                bytes = new ReadOnlySpan<byte>(this.buffer, this.readOffset, length);
 
-            this.readOffset += length;
+                this.readOffset += length;
+            }
+            else
+            {
+                bytes = ReadBytes(length);
+            }
 
-            return value;
+            return System.Text.Encoding.ASCII.GetString(bytes);
         }
 
         /// <summary>
@@ -583,17 +644,16 @@ namespace PaintShopProFiletype.IO
             return true;
         }
 
+        /// <summary>
+        /// Verifies that the <see cref="EndianBinaryReader"/> has not been disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">The object has been disposed.</exception>
         private void VerifyNotDisposed()
         {
             if (this.stream == null)
             {
-                throw new ObjectDisposedException(nameof(BufferedBinaryReader));
+                throw new ObjectDisposedException(nameof(EndianBinaryReader));
             }
-        }
-
-        private static class EmptyArray<T>
-        {
-            public static readonly T[] Value = new T[0];
         }
     }
 }

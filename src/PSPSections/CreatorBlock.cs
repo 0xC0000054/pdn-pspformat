@@ -44,7 +44,7 @@ namespace PaintShopProFiletype.PSPSections
             this.description = string.Empty;
         }
 
-        public CreatorBlock(BufferedBinaryReader reader, uint blockLength)
+        public CreatorBlock(EndianBinaryReader reader, uint blockLength)
         {
             long endOffset = reader.Position + blockLength;
 

@@ -20,7 +20,7 @@ namespace PaintShopProFiletype.PSPSections
         private readonly uint blockLength;
         private readonly List<KeyValuePair<PSPExtendedDataID, byte[]>> values;
 
-        public ExtendedDataBlock(BufferedBinaryReader br, uint blockLength)
+        public ExtendedDataBlock(EndianBinaryReader br, uint blockLength)
         {
             this.blockLength = blockLength;
             this.values = new List<KeyValuePair<PSPExtendedDataID, byte[]>>();
@@ -43,7 +43,7 @@ namespace PaintShopProFiletype.PSPSections
             return index;
         }
 
-        private void Load(BufferedBinaryReader br)
+        private void Load(EndianBinaryReader br)
         {
             long startOffset = br.Position;
 
